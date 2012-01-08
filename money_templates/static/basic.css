@@ -1,0 +1,43 @@
+body {
+  font-family: Verdana, Arial, sans-serif;
+}
+.block {
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 2px solid #ccc;
+}
+.block-first {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+.description {
+  font-weight: bold;
+  padding-right: 4px;
+}
+table.transactions .date {
+  text-align: left;
+}
+table.transactions .description {
+  padding: 0 8px;
+}
+table.transactions td.description {
+  font-weight: normal;
+  font-size: 85%;
+  color: #777;
+}
+table.transactions .type {
+  padding-right: 8px;
+}
+table.transactions td.type {
+  font-size: 85%;
+}
+table.transactions .amount {
+  text-align: right;
+}
+table.transactions .credit {
+  color: #3a3;
+}
+table.transactions .debit {
+  color: #900;
+}

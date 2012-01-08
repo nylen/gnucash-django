@@ -1,0 +1,37 @@
+{% load template_extras %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Account details - {{ acct.name }}</title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
+  </head>
+  <body>
+    <div class="block block-first">
+      <a href="..">Back to index</a>
+    </div>
+    {% include "account_block.html" %}
+    {% include "txactions_page_block.html" %}
+    <div class="block">
+      <table class="transactions">
+        <tr>
+          <th class="date">Date</th>
+          <th class="description">Description</th>
+          <th class="type">Type</th>
+          <th class="amount">Amount</th>
+        </tr>
+        {% for split in page.object_list %}
+          <tr>
+            <td class="date">{{ split.transaction.post_date|format_date }}</td>
+            <td class="description">{{ split.transaction.description }}</td>
+            <td class="type">{{ split.opposing_account.name }}</td>
+            <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}">
+              {{ split.amount|format_decimal }}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% include "txactions_page_block.html" %}
+  </body>
+</html>

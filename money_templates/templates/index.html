@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Account balances</title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
+  </head>
+  <body>
+{% for acct in accounts %}
+  {% include "account_block.html" %}
+{% endfor %}
+  </body>
+</html>

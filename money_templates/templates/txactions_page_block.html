@@ -1,0 +1,11 @@
+<div class="block">
+  Transactions {{ page.start_index }}-{{ page.end_index }} of {{ page.paginator.count }}
+  (page {{ page.number }} of {{ page.paginator.num_pages }})
+  {% if page.has_previous %}
+    | <a href="?page=1">first</a>
+    | <a href="?page={{ page.previous_page_number }}">previous</a>
+  {% endif %}
+  {% if page.has_next %}
+    | <a href="?page={{ page.next_page_number }}">next</a>
+  {% endif %}
+</div>

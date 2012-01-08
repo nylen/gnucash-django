@@ -1,0 +1,32 @@
+{% load template_extras %}
+<div class="block{% if acct.index == 0 %} block-first{% endif %}">
+  <table>
+    <tr>
+      <td class="description">Account:</td>
+      <td class="content">
+        {% if acct.show_link %}
+          <a href="accounts/{{acct.index}}">{{ acct.name }}</a>
+        {% else %}
+          {{ acct.name }}
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td class="description">Type:</td>
+      <td class="content">{{ acct.type }}</td>
+    </tr>
+    <tr>
+      <td class="description">Balance:</td>
+      <td class="content">{{ acct.balance|format_dollar_amount }}</td>
+    </tr>
+    <tr>
+      <td class="description">As of:</td>
+      <td class="content">{{ acct.updated|format_date_time }}</td>
+    </tr>
+    <tr>
+      <td class="description">Changed:</td>
+      <td class="content">{{ acct.last_transaction|format_date_time }}</td>
+    </tr>
+  </table>
+</div>
+
