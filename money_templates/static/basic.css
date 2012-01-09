@@ -15,6 +15,9 @@ body {
   font-weight: bold;
   padding-right: 4px;
 }
+table.transactions .description-row .description {
+  padding-top: 8px;
+}
 table.transactions .date {
   text-align: left;
 }
@@ -28,6 +31,7 @@ table.transactions td.description {
 }
 table.transactions .type {
   padding-right: 8px;
+  text-align: left;
 }
 table.transactions td.type {
   font-size: 85%;

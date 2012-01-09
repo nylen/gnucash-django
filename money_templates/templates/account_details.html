@@ -16,14 +16,15 @@
       <table class="transactions">
         <tr>
           <th class="date">Date</th>
-          <th class="description">Description</th>
           <th class="type">Type</th>
           <th class="amount">Amount</th>
         </tr>
         {% for split in page.object_list %}
+          <tr class="description-row">
+            <td class="description" colspan="3">{{ split.transaction.description }}</td>
+          </tr>
           <tr>
             <td class="date">{{ split.transaction.post_date|format_date }}</td>
-            <td class="description">{{ split.transaction.description }}</td>
             <td class="type">{{ split.opposing_account.name }}</td>
             <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}">
               {{ split.amount|format_decimal }}
