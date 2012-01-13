@@ -15,8 +15,11 @@ urlpatterns = patterns('',
       {'document_root': os.path.join(os.path.dirname(__file__), 'money_templates/static')}),
 
     # Uncomment the admin/doc line below to enable admin documentation:
-    (r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    (r'^money/admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    (r'^admin/', include(admin.site.urls)),
+    (r'^money/admin/', include(admin.site.urls)),
+
+    # Login
+    (r'^money/accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
 )

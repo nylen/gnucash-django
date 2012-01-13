@@ -1,9 +1,10 @@
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http           import HttpResponse
-from django.template       import RequestContext, loader
+from django.contrib.auth.decorators import login_required
+from django.core.paginator          import Paginator, EmptyPage, PageNotAnInteger
+from django.http                    import HttpResponse
+from django.template                import RequestContext, loader
 
-from gnucash_data.models   import Account
-from utils.misc_functions  import utc_to_local
+from gnucash_data.models            import Account
+from utils.misc_functions           import utc_to_local
 
 import settings
 
@@ -20,6 +21,7 @@ def get_account_object(acct, index=None):
   }
 
 
+@login_required
 def index(request):
   template = loader.get_template('index.html')
   accts = []
@@ -35,6 +37,7 @@ def index(request):
   return HttpResponse(template.render(c))
 
 
+@login_required
 def account(request, index):
   template = loader.get_template('account_details.html')
   path = settings.ACCOUNTS_LIST[int(index)]
