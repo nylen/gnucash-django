@@ -75,7 +75,7 @@ MEDIA_URL = ''
 
 
 if RUNNING_WSGI:
-  BASE_URL = '/money'
+  BASE_URL = os.environ['WSGI_SCRIPT_NAME'].rstrip('/')
 else:
   BASE_URL = ''
 
