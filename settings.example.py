@@ -4,7 +4,12 @@
 # Copy settings.example.py to settings.py and change all lines containing ***
 # (they will cause Python syntax errors if not modified).
 
-DEBUG = True
+import os
+
+ALWAYS_DEBUG = True # for contrib.staticfiles support
+RUNNING_WSGI = (os.environ.get('RUNNING_WSGI') == 'true')
+
+DEBUG = (ALWAYS_DEBUG or not RUNNING_WSGI)
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -68,13 +73,23 @@ MEDIA_ROOT = ''
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
 MEDIA_URL = ''
 
+
+if RUNNING_WSGI:
+  BASE_URL = '/money'
+else:
+  BASE_URL = ''
+
+STATIC_URL = BASE_URL + '/static/'
+
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = STATIC_URL + 'admin/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = (***FILL THIS IN***)
+
+LOGIN_URL = BASE_URL + '/accounts/login/'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -110,20 +125,13 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
 
-    #'django.contrib.staticfiles', # only available in Django 1.3+
+    'django.contrib.staticfiles', # only available in Django 1.3+
 
     'gnucash_data',
     'gnucash_scripts',
     'utils',
     'money_templates',
 )
-
-# Should be able to disable the following in Django 1.3
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'money_templates.context.static_url',
-)
-STATIC_URL = '/money/static/'
 
 ACCOUNTS_LIST = [
     (***GNUCASH ACCOUNT PATH***),
