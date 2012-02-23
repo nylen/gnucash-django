@@ -5,7 +5,7 @@
       <td class="description">Account:</td>
       <td class="content">
         {% if acct.show_link %}
-          <a href="accounts/{{acct.index}}">{{ acct.name }}</a>
+          <a href="{% url views.account acct.index %}">{{ acct.name }}</a>
         {% else %}
           {{ acct.name }}
         {% endif %}

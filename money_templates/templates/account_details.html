@@ -1,22 +1,35 @@
 {% load template_extras %}
+{% load query_string %}
 <!DOCTYPE html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width" />
     <title>Account details - {{ acct.name }}</title>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}script.js"></script>
   </head>
   <body>
     <div class="block block-first">
-      <a href="..">Back to index</a>
+      <a href="{% url views.index %}">Back to index</a>
     </div>
     {% include "account_block.html" %}
     {% include "txactions_page_block.html" %}
     <div class="block">
+      <a id="show-filters" href="javascript:void()">Filters</a>
+      <form id="filters" action="" method="get">
+        <table id="filters-fields">
+          {{ form.as_table }}
+        </table>
+        <input type="submit" value="Apply" />
+        <input type="button" value="Clear" id="clear-filters" />
+      </form>
+    </div>
+    <div class="block">
       <table class="transactions">
         <tr>
           <th class="date">Date</th>
-          <th class="type">Type</th>
+          <th class="opposing_account">Opposing account</th>
           <th class="amount">Amount</th>
         </tr>
         {% for split in page.object_list %}
@@ -25,7 +38,15 @@
           </tr>
           <tr>
             <td class="date">{{ split.transaction.post_date|format_date }}</td>
-            <td class="type">{{ split.opposing_account.name }}</td>
+            <td class="opposing_account">
+              {% if not opposing_account_guid %}
+                <a href="{% query_string 'opposing_account=split.opposing_account.guid' '' %}">
+                  {{ split.opposing_account.name }}
+                </a>
+              {% else %}
+                {{ split.opposing_account.name }}
+              {% endif %}
+            </td>
             <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}">
               {{ split.amount|format_decimal }}
             </td>

@@ -29,11 +29,11 @@ table.transactions td.description {
   font-size: 85%;
   color: #777;
 }
-table.transactions .type {
+table.transactions .opposing_account {
   padding-right: 8px;
-  text-align: left;
+  text-align: center;
 }
-table.transactions td.type {
+table.transactions td.opposing_account {
   font-size: 85%;
 }
 table.transactions .amount {
@@ -44,4 +44,12 @@ table.transactions .credit {
 }
 table.transactions .debit {
   color: #900;
+}
+
+#filters {
+  display: none;
+}
+#filters th {
+  text-align: left;
+  font-weight: normal;
 }

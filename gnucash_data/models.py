@@ -1,6 +1,6 @@
-from django.db import connections, models
-from django.db.models import Max, F
-from decimal import Decimal
+from django.db        import connections, models
+from django.db.models import Max
+from decimal          import Decimal
 
 
 class Book(models.Model):
