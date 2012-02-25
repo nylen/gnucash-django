@@ -1,0 +1,29 @@
+<form action="" method="get">
+  <table id="filters-fields">
+    {% for field in filter_form.hidden_fields %}
+      {{ field }}
+    {% endfor %}
+    {% for field in filter_form.visible_fields %}
+      {% if field.html_name = 'opposing_accounts' %}
+        <tr class="field-opposing_account">
+          <th>
+            <label for="id_opposing_account">Opposing account</label>:&nbsp;
+          </th>
+          <td>
+            <select id="single-opposing-account"></select>
+            <a id="filter-multi-accounts" href="#">select multiple</a>
+          </td>
+        </tr>
+      {% endif %}
+      <tr class="field-{{ field.html_name }}">
+        <th>{{ field.label_tag }}:&nbsp;</th>
+        <td>
+          {{ field.errors }}
+          {{ field }}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <input type="submit" value="Apply" />
+  <input type="button" value="Clear" id="clear-filters" />
+</form>

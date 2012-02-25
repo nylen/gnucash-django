@@ -1,6 +1,14 @@
 body {
   font-family: Verdana, Arial, sans-serif;
 }
+a {
+  outline: none;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
 .block {
   padding-top: 8px;
   margin-top: 8px;
@@ -46,10 +54,33 @@ table.transactions .debit {
   color: #900;
 }
 
-#filters {
+.clear {
+  clear: both;
+}
+
+#forms .form {
   display: none;
 }
-#filters th {
+#form-links a {
+  display: block;
+  float: left;
+  padding: 5px;
+  margin-right: 5px;
+}
+#form-links a.active {
+  background-color: #ccc;
+}
+
+#form-filters th {
   text-align: left;
   font-weight: normal;
+}
+#form-filters tr.field-opposing_accounts {
+  display: none;
+}
+#form-filters tr.field-opposing_accounts ul {
+  display: none;
+  list-style: none outside;
+  padding: 0;
+  margin: 0;
 }

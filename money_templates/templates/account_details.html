@@ -7,6 +7,8 @@
     <title>Account details - {{ acct.name }}</title>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.shiftcheckbox.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.selectfocus.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}script.js"></script>
   </head>
   <body>
@@ -15,15 +17,24 @@
     </div>
     {% include "account_block.html" %}
     {% include "txactions_page_block.html" %}
-    <div class="block">
-      <a id="show-filters" href="javascript:void()">Filters</a>
-      <form id="filters" action="" method="get">
-        <table id="filters-fields">
-          {{ form.as_table }}
-        </table>
-        <input type="submit" value="Apply" />
-        <input type="button" value="Clear" id="clear-filters" />
-      </form>
+    <div class="block" id="forms">
+      <div id="form-links">
+        <a class="toggle-form" data-form="filters" href="#">Filters</a>
+        <a class="toggle-form" data-form="actions" href="#">Actions</a>
+      </div>
+      <div class="clear" id="before-forms" />
+      <div id="form-filters" class="form">
+        {% include "filter_form.html" %}
+      </div>
+      <div id="form-actions" class="form">
+        test<br />
+        test<br />
+        test<br />
+        test<br />
+        test<br />
+        test<br />
+        test<br />
+      </div>
     </div>
     <div class="block">
       <table class="transactions">
@@ -39,7 +50,7 @@
           <tr>
             <td class="date">{{ split.transaction.post_date|format_date }}</td>
             <td class="opposing_account">
-              {% if not opposing_account_guid %}
+              {% if not opposing_account_guids %}
                 <a href="{% query_string 'opposing_account=split.opposing_account.guid' '' %}">
                   {{ split.opposing_account.name }}
                 </a>

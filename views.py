@@ -8,6 +8,8 @@ from django.template                import RequestContext, loader
 from gnucash_data.models            import Account, Split
 from utils.misc_functions           import utc_to_local
 
+import datetime
+
 import forms
 import settings
 
@@ -51,12 +53,9 @@ def account(request, index):
 
   splits = a.split_set.select_related(depth=3)
 
-  opposing_account_guid = ''
-  opposing_account_name = ''
+  opposing_account_guids = []
   min_date = ''
   max_date = ''
-
-  form = forms.FilterForm(request.GET)
 
   cursor = connections['gnucash'].cursor()
   cursor.execute('''
@@ -83,24 +82,24 @@ def account(request, index):
   for row in cursor.fetchall():
     choices.append((row[0], row[1]))
 
-  form.fields['opposing_account'].choices = choices
+  filter_form = forms.FilterForm(choices, request.GET)
 
-  if form.is_valid():
+  if filter_form.is_valid():
 
-    opposing_account_guid = form.cleaned_data['opposing_account']
-    if opposing_account_guid:
-      splits = splits.filter(transaction__split__account__guid=opposing_account_guid)
-      opposing_account_name = Account.objects.get(guid=opposing_account_guid).name
-    else:
-      opposing_account_name = ''
+    opposing_account_guids = filter_form.cleaned_data['opposing_accounts']
+    if opposing_account_guids and 'all' not in opposing_account_guids:
+      splits = splits.filter(transaction__split__account__guid__in=opposing_account_guids)
 
-    min_date = form.cleaned_data['min_date']
+    min_date = filter_form.cleaned_data['min_date']
     if min_date:
       splits = splits.filter(transaction__post_date__gte=min_date)
+      min_date = splits.count()
 
-    max_date = form.cleaned_data['max_date']
+    max_date = filter_form.cleaned_data['max_date']
     if max_date:
-      splits = splits.filter(transaction__post_date__lte=min_date)
+      # Yes, this is weird.  No, it doesn't work otherwise.
+      splits = splits.filter(transaction__post_date__lt=max_date + datetime.timedelta(days=1))
+      max_date = splits.count()
 
   splits = splits.order_by(
     'transaction__post_date',
@@ -122,13 +121,10 @@ def account(request, index):
     page = pages.page(pages.num_pages)
 
   c = RequestContext(request, {
-    'opposing_account_guid': opposing_account_guid,
-    'opposing_account_name': opposing_account_name,
-    'min_date': min_date,
-    'max_date': max_date,
+    'opposing_account_guids': opposing_account_guids,
     'acct': acct,
     'page': page,
-    'form': form,
+    'filter_form': filter_form,
   })
   return HttpResponse(template.render(c))
 
