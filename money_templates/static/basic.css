@@ -4,6 +4,7 @@ body {
 a {
   outline: none;
   text-decoration: none;
+  color: blue;
 }
 a:hover {
   text-decoration: underline;
@@ -58,9 +59,10 @@ table.transactions .debit {
   clear: both;
 }
 
-#forms .form {
+#form-links {
   display: none;
 }
+
 #form-links a {
   display: block;
   float: left;
@@ -75,12 +77,16 @@ table.transactions .debit {
   text-align: left;
   font-weight: normal;
 }
-#form-filters tr.field-opposing_accounts {
+
+#form-filters tr.field-opposing_account {
   display: none;
 }
 #form-filters tr.field-opposing_accounts ul {
-  display: none;
   list-style: none outside;
   padding: 0;
   margin: 0;
+}
+
+#clear-filters {
+  display: none;
 }

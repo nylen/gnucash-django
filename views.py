@@ -53,6 +53,7 @@ def account(request, index):
 
   splits = a.split_set.select_related(depth=3)
 
+  filtering_any = False
   filtering_opposing_accounts = False
 
   cursor = connections['gnucash'].cursor()
@@ -86,20 +87,27 @@ def account(request, index):
 
     opposing_account_guids = filter_form.cleaned_data['opposing_accounts']
     if opposing_account_guids and 'all' not in opposing_account_guids:
+      filtering_any = True
       filtering_opposing_accounts = True
       splits = splits.filter(transaction__split__account__guid__in=opposing_account_guids)
 
     tx_desc = filter_form.cleaned_data['tx_desc']
     if tx_desc:
-      splits = splits.filter(transaction__description__icontains=tx_desc)
+      filtering_any = True
+      if True in (c in tx_desc for c in '^$()[]?*+|\\'):
+        splits = splits.filter(transaction__description__iregex=tx_desc)
+      else:
+        splits = splits.filter(transaction__description__icontains=tx_desc)
 
     min_date = filter_form.cleaned_data['min_date']
     if min_date:
+      filtering_any = True
       splits = splits.filter(transaction__post_date__gte=min_date)
       min_date = splits.count()
 
     max_date = filter_form.cleaned_data['max_date']
     if max_date:
+      filtering_any = True
       # Yes, this is weird.  No, it doesn't work otherwise.
       splits = splits.filter(transaction__post_date__lt=max_date + datetime.timedelta(days=1))
       max_date = splits.count()
@@ -124,6 +132,7 @@ def account(request, index):
     page = pages.page(pages.num_pages)
 
   c = RequestContext(request, {
+    'filtering_any': filtering_any,
     'filtering_opposing_accounts': filtering_opposing_accounts,
     'acct': acct,
     'page': page,

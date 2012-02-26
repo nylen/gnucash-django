@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width" />
     <title>Account details - {{ acct.name }}</title>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
+    <script type="text/javascript">
+      var filteringAny = {% if filtering_any %}1{% else %}0{% endif %};
+    </script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.shiftcheckbox.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.selectfocus.js"></script>
@@ -19,14 +22,14 @@
     {% include "txactions_page_block.html" %}
     <div class="block" id="forms">
       <div id="form-links">
-        <a class="toggle-form" data-form="filters" href="#">Filters</a>
+        <a class="toggle-form" data-form="filters" id="toggle-filters" href="#">Filters</a>
         <a class="toggle-form" data-form="actions" href="#">Actions</a>
       </div>
       <div class="clear" id="before-forms" />
-      <div id="form-filters" class="form">
+      <div id="form-filters" class="form block block-first">
         {% include "filter_form.html" %}
       </div>
-      <div id="form-actions" class="form">
+      <div id="form-actions" class="form block">
         test<br />
         test<br />
         test<br />

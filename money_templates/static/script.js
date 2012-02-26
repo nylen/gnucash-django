@@ -1,7 +1,16 @@
 $(function() {
   var currentForm = null;
 
-  $('#forms a.toggle-form').data('visible', false).click(function() {
+  $('#form-links').show();
+  $('#forms .form').hide().removeClass('block block-first');
+  $('#form-filters tr.field-opposing_account').show();
+  $('#form-filters tr.field-opposing_accounts').each(function() {
+    $(this).find('ul').hide();
+    $(this).hide();
+  });
+  $('#clear-filters').show();
+
+  $('#forms a.toggle-form').click(function() {
     var form = $(this).data('form');
     var $form = $('#form-' + form);
     if (form == currentForm) {
@@ -21,6 +30,10 @@ $(function() {
     return false;
   });
 
+  if (filteringAny) {
+    $('#form-filters').show();
+    $('#toggle-filters').trigger('click');
+  }
 
   var $checkboxes = $('#form-filters tr.field-opposing_accounts :checkbox');
 
@@ -28,6 +41,14 @@ $(function() {
     $('#form-filters input[type=text], select').val('');
     $checkboxes.attr('checked', false);
     $('#form-filters form').submit();
+    return false;
+  });
+
+  $('#form-filters form').submit(function(e) {
+    if ($('#id_opposing_accounts_0').is(':checked')) {
+      $checkboxes.attr('checked', false);
+    }
+    return true;
   });
 
   $('#form-filters tr.field-opposing_accounts li').shiftcheckbox({
@@ -40,8 +61,9 @@ $(function() {
 
   $('#filter-multi-accounts').click(function() {
     $('#single-opposing-account').unbind('change').remove();
-    $(this).parents('tr').hide().next('tr').each(function() {
-      $(this).add('#all-opposing-accounts-container').show();
+    $('#form-filters tr.field-opposing_account').hide();
+    $('#form-filters tr.field-opposing_accounts').each(function() {
+      $(this).show();
       $('ul', this).slideDown();
     });
     return false;
@@ -68,6 +90,7 @@ $(function() {
     $('#single-opposing-account').val('all');
     $checkboxes.attr('checked', true);
   } else {
+    $('#form-filters tr.field-opposing_accounts ul').show();
     $('#filter-multi-accounts').trigger('click');
   }
 
