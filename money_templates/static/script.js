@@ -94,6 +94,11 @@ $(function() {
     $('#filter-multi-accounts').trigger('click');
   }
 
+  // from http://simonwillison.net/2006/Jan/20/escape/
+  RegExp.escape = function(text) {
+    //return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    return text.replace(/[-[\]{}()*+?.,\\^$|#]/g, "\\$&");
+  }
 
   var formatDate = function(date) {
     if (isNaN(date)) {
@@ -108,9 +113,28 @@ $(function() {
     }
   }
 
+  $('table.transactions td.description').click(function() {
+    if ($('#form-filters').is(':visible')) {
+      var thisValue = $(this).data('value');
+      var txDesc = $('#id_tx_desc').val();
+
+      for (i in regexChars) {
+        var c = regexChars.charAt(i);
+        if (thisValue.indexOf(c) >= 0) {
+          thisValue = RegExp.escape(thisValue);
+          break;
+        }
+      }
+
+      $('#id_tx_desc').val(thisValue == txDesc ? '' : thisValue);
+      // Hack to make the Android ICS browser actually display the new value
+      $('#id_tx_desc').css('visibility', 'visible');
+    }
+  });
+
   $('table.transactions td.date').click(function() {
     if ($('#form-filters').is(':visible')) {
-      var thisDate = new Date(Date.parse($(this).text()));
+      var thisDate = new Date(Date.parse($(this).data('value')));
       var minDate  = new Date(Date.parse($('#id_min_date').val()));
       var maxDate  = new Date(Date.parse($('#id_max_date').val()));
       if (thisDate < minDate) {

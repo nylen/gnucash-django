@@ -55,6 +55,7 @@ def account(request, index):
 
   filtering_any = False
   filtering_opposing_accounts = False
+  regex_chars = '^$()[]?*+|\\'
 
   cursor = connections['gnucash'].cursor()
   cursor.execute('''
@@ -94,7 +95,7 @@ def account(request, index):
     tx_desc = filter_form.cleaned_data['tx_desc']
     if tx_desc:
       filtering_any = True
-      if True in (c in tx_desc for c in '^$()[]?*+|\\'):
+      if True in (c in tx_desc for c in regex_chars):
         splits = splits.filter(transaction__description__iregex=tx_desc)
       else:
         splits = splits.filter(transaction__description__icontains=tx_desc)
@@ -134,6 +135,7 @@ def account(request, index):
   c = RequestContext(request, {
     'filtering_any': filtering_any,
     'filtering_opposing_accounts': filtering_opposing_accounts,
+    'regex_chars_js': regex_chars.replace('\\', '\\\\').replace("'", "\\'"),
     'acct': acct,
     'page': page,
     'filter_form': filter_form,
