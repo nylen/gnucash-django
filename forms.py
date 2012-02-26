@@ -9,6 +9,8 @@ class FilterForm(forms.Form):
     self.fields['opposing_accounts'] = forms.MultipleChoiceField(
       required=False, choices=choices, widget=forms.CheckboxSelectMultiple)
 
+    self.fields['tx_desc'] = forms.CharField(
+      required=False, initial='', label='Description')
     self.fields['min_date'] = forms.DateField(
       required=False, initial='')
     self.fields['max_date'] = forms.DateField(

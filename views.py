@@ -53,10 +53,7 @@ def account(request, index):
 
   splits = a.split_set.select_related(depth=3)
 
-  opposing_account_guids = []
   filtering_opposing_accounts = False
-  min_date = ''
-  max_date = ''
 
   cursor = connections['gnucash'].cursor()
   cursor.execute('''
@@ -91,6 +88,10 @@ def account(request, index):
     if opposing_account_guids and 'all' not in opposing_account_guids:
       filtering_opposing_accounts = True
       splits = splits.filter(transaction__split__account__guid__in=opposing_account_guids)
+
+    tx_desc = filter_form.cleaned_data['tx_desc']
+    if tx_desc:
+      splits = splits.filter(transaction__description__icontains=tx_desc)
 
     min_date = filter_form.cleaned_data['min_date']
     if min_date:
