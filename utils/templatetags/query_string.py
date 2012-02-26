@@ -5,10 +5,13 @@ import datetime
 
 register = template.Library()
 
+def is_quoted_string(s):
+  return (len(s) > 0 and s[0] == s[-1] and s[0] in ('"', "'"))
+
 @register.tag
 def query_string(parser, token):
     """
-    Allows you too manipulate the query string of a page by adding and removing keywords.
+    Allows you to manipulate the query string of a page by adding and removing keywords.
     If a given value is a context variable it will resolve it.
     Based on similiar snippet by user "dnordberg".
 
@@ -29,75 +32,73 @@ def query_string(parser, token):
 
     """
     try:
-        tag_name, add_string,remove_string = token.split_contents()
+        tag_name, add_string, remove_string = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError, "%r tag requires two arguments" % token.contents.split()[0]
-    if not (add_string[0] == add_string[-1] and add_string[0] in ('"', "'")) or not (remove_string[0] == remove_string[-1] and remove_string[0] in ('"', "'")):
+    if not is_quoted_string(add_string) or not is_quoted_string(remove_string):
         raise template.TemplateSyntaxError, "%r tag's argument should be in quotes" % tag_name
 
-    add = string_to_dict(add_string[1:-1])
+    add = string_to_dict_of_lists(add_string[1:-1])
     remove = string_to_list(remove_string[1:-1])
 
-    return QueryStringNode(add,remove)
+    return QueryStringNode(add, remove)
 
 class QueryStringNode(template.Node):
-    def __init__(self, add,remove):
+    def __init__(self, add, remove):
         self.add = add
         self.remove = remove
 
     def render(self, context):
         p = {}
-        for k, v in context["request"].GET.items():
-            p[k]=v
-        return get_query_string(p,self.add,self.remove,context)
+        for k, v in context["request"].GET.lists():
+            p[k] = v
+
+        return get_query_string(p, self.add, self.remove, context)
 
 def get_query_string(p, new_params, remove, context):
     """
-    Add and remove query parameters. From `django.contrib.admin`.
+    Add and remove query parameters. Adapted from `django.contrib.admin`.
     """
     for r in remove:
-        for k in p.keys():
-            if k.startswith(r):
-                del p[k]
+        if r in p:
+            del p[r]
+
     for k, v in new_params.items():
         if k in p and v is None:
             del p[k]
         elif v is not None:
             p[k] = v
 
-    for k, v in p.items():
-        try:
-            p[k] = template.Variable(v).resolve(context)
-        except:
-            p[k]=v
+    pairs = []
+    for k, vl in p.items():
+        for v in vl:
+            try:
+                v = template.Variable(v).resolve(context)
+            except:
+                pass
+            pairs.append(u'%s=%s' % (k, v))
 
-    return mark_safe('?' + '&amp;'.join([u'%s=%s' % (k, v) for k, v in p.items()]).replace(' ', '%20'))
+    return mark_safe('?' + '&amp;'.join(pairs).replace(' ', '%20'))
 
-# Taken from lib/utils.py
-def string_to_dict(string):
-    kwargs = {}
 
-    if string:
-        string = str(string)
-        if ',' not in string:
-            # ensure at least one ','
-            string += ','
-        for arg in string.split(','):
-            arg = arg.strip()
-            if arg == '': continue
-            kw, val = arg.split('=', 1)
-            kwargs[kw] = val
-    return kwargs
+# Adapted from lib/utils.py
 
-def string_to_list(string):
+def string_to_dict_of_lists(s):
+    d = {}
+    for arg in str(s).split(','):
+        arg = arg.strip()
+        if arg == '': continue
+        key, val = arg.split('=', 1)
+        if key in d:
+            d[key].append(val)
+        else:
+            d[key] = [val]
+    return d
+
+def string_to_list(s):
     args = []
-    if string:
-        string = str(string)
-        if ',' not in string:
-            # ensure at least one ','
-            string += ','
-        for arg in string.split(','):
-            arg = arg.strip()
-            if arg == '': continue
-            args.append(arg)
+    for arg in str(s).split(','):
+        arg = arg.strip()
+        if arg == '': continue
+        args.append(arg)
     return args

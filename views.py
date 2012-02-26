@@ -54,6 +54,7 @@ def account(request, index):
   splits = a.split_set.select_related(depth=3)
 
   opposing_account_guids = []
+  filtering_opposing_accounts = False
   min_date = ''
   max_date = ''
 
@@ -88,6 +89,7 @@ def account(request, index):
 
     opposing_account_guids = filter_form.cleaned_data['opposing_accounts']
     if opposing_account_guids and 'all' not in opposing_account_guids:
+      filtering_opposing_accounts = True
       splits = splits.filter(transaction__split__account__guid__in=opposing_account_guids)
 
     min_date = filter_form.cleaned_data['min_date']
@@ -121,7 +123,7 @@ def account(request, index):
     page = pages.page(pages.num_pages)
 
   c = RequestContext(request, {
-    'opposing_account_guids': opposing_account_guids,
+    'filtering_opposing_accounts': filtering_opposing_accounts,
     'acct': acct,
     'page': page,
     'filter_form': filter_form,

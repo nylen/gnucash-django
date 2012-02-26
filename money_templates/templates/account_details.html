@@ -50,8 +50,8 @@
           <tr>
             <td class="date">{{ split.transaction.post_date|format_date }}</td>
             <td class="opposing_account">
-              {% if not opposing_account_guids %}
-                <a href="{% query_string 'opposing_account=split.opposing_account.guid' '' %}">
+              {% if not filtering_opposing_accounts %}
+                <a href="{% query_string 'opposing_accounts=split.opposing_account.guid' '' %}">
                   {{ split.opposing_account.name }}
                 </a>
               {% else %}
