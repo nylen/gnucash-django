@@ -3,6 +3,7 @@
 from common   import *
 from datetime import datetime
 from dateutil import parser as dateparser
+from decimal  import Decimal
 from gnucash  import Session, Account, Transaction, Split, GncNumeric
 from sys      import argv
 from time     import mktime
@@ -41,6 +42,16 @@ try:
   updated = False
 
   for fn in argv[2:]:
+    balance = None
+    try:
+      bal = open(fn + '.balance.txt', 'r')
+      for line in bal:
+        line = line.rstrip()
+        if line:
+          balance = Decimal(line.rstrip())
+    except:
+      pass
+
     qif = open(fn, 'r')
     txinfo = {}
     for line in qif:
@@ -101,6 +112,7 @@ try:
     u = models.Update()
     u.account = acct.GetGUID().to_string()
     u.updated = datetime.utcnow()
+    u.balance = balance
     u.save(using='default')
 
   session.save()

@@ -9,35 +9,20 @@ from gnucash_data.models            import Account, Split
 from utils.misc_functions           import utc_to_local
 
 import datetime
+import json
 
 import forms
 import settings
 
 
-def get_account_object(acct, index=None):
-  return {
-    'name': acct.name,
-    'balance': acct.balance(),
-    'type': acct.type.title(),
-    'updated': utc_to_local(acct.last_updated()),
-    'last_transaction': utc_to_local(acct.last_transaction_date()),
-    'show_link': (index != None),
-    'index': index,
-  }
-
-
 @login_required
 def index(request):
   template = loader.get_template('index.html')
-  accts = []
-  i = 0
-  for path in settings.ACCOUNTS_LIST:
-    a = Account.from_path(path)
-    accts.append(get_account_object(a, i))
-    i += 1
+  accounts = [Account.from_path(path) for path in settings.ACCOUNTS_LIST]
 
   c = RequestContext(request, {
-    'accounts': accts,
+    'accounts': accounts,
+    'show_account_links': True,
   })
   return HttpResponse(template.render(c))
 
@@ -46,43 +31,89 @@ def index(request):
 def account(request, index):
   template = loader.get_template('account_details.html')
   path = settings.ACCOUNTS_LIST[int(index)]
-  a = Account.from_path(path)
-  acct = get_account_object(a)
+  account = Account.from_path(path)
 
   items_per_page = 50
 
-  splits = a.split_set.select_related(depth=3)
+  splits = account.split_set.select_related(depth=3)
 
   filtering_any = False
   filtering_opposing_accounts = False
+  tx_desc = ''
   regex_chars = '^$()[]?*+|\\'
 
   cursor = connections['gnucash'].cursor()
   cursor.execute('''
-      SELECT a.guid, a.name
+      SELECT a.guid, a.name, a.parent_guid,
+
+        CASE
+          WHEN s.account_guid IS NULL THEN 0
+          ELSE 1
+        END AS is_present,
+
+        a.placeholder
+
       FROM accounts a
 
-      INNER JOIN (
-        SELECT s2.account_guid, t.post_date
+      LEFT JOIN (
+        SELECT s2.account_guid,
+          MAX(t.post_date) post_date
+
         FROM splits s
+
         INNER JOIN transactions t
         ON s.tx_guid = t.guid
+
         INNER JOIN splits s2
-        on s2.tx_guid = t.guid
+        ON s2.tx_guid = t.guid
+
         WHERE s.account_guid = %s
         AND s2.account_guid <> %s
+
+        GROUP BY 1
       ) s
       ON s.account_guid = a.guid
 
-      GROUP BY 1,2
-      ORDER BY MAX(s.post_date) DESC
-    ''', [a.guid, a.guid])
+      WHERE a.account_type <> 'ROOT'
+    ''', [account.guid, account.guid])
 
-  choices = list(forms.DEFAULT_OPPOSING_ACCOUNT_CHOICES)
+  accounts_dict = {}
+
+  opposing_account_choices = []
+  change_account_choices = []
+
   for row in cursor.fetchall():
-    choices.append((row[0], row[1]))
+    if row[3]:
+      opposing_account_choices.append((row[0], row[1]))
+    accounts_dict[row[0]] = {
+      'name': row[1],
+      'parent_guid': row[2],
+      'placeholder': row[4],
+    }
 
-  filter_form = forms.FilterForm(choices, request.GET)
+  for guid, a in accounts_dict.items():
+    if not a['placeholder']:
+      path_list = [a['name']]
+      parent_guid = a['parent_guid']
+      while parent_guid in accounts_dict:
+        path_list.append(accounts_dict[parent_guid]['name'])
+        parent_guid = accounts_dict[parent_guid]['parent_guid']
+      path_list.reverse()
+      a['path'] = ':'.join(path_list)
+      if guid != account.guid:
+        change_account_choices.append((guid, a['path']))
+
+  get_account_path = lambda a: accounts_dict[a[0]]['path']
+  opposing_account_choices.sort(key=get_account_path)
+  change_account_choices.sort(key=get_account_path)
+
+  opposing_account_choices = \
+    forms.DEFAULT_OPPOSING_ACCOUNT_CHOICES + opposing_account_choices
+  change_account_choices = \
+    forms.DEFAULT_CHANGE_ACCOUNT_CHOICES + change_account_choices
+
+
+  filter_form = forms.FilterForm(opposing_account_choices, request.GET)
 
   if filter_form.is_valid():
 
@@ -113,6 +144,11 @@ def account(request, index):
       splits = splits.filter(transaction__post_date__lt=max_date + datetime.timedelta(days=1))
       max_date = splits.count()
 
+
+  modify_form = forms.ModifyForm(change_account_choices, opposing_account_choices,
+    request.GET, auto_id="modify_id_%s")
+
+
   splits = splits.order_by(
     'transaction__post_date',
     'transaction__enter_date',
@@ -135,10 +171,13 @@ def account(request, index):
   c = RequestContext(request, {
     'filtering_any': filtering_any,
     'filtering_opposing_accounts': filtering_opposing_accounts,
-    'regex_chars_js': regex_chars.replace('\\', '\\\\').replace("'", "\\'"),
-    'acct': acct,
+    'tx_desc': tx_desc,
+    'regex_chars_js': json.dumps(regex_chars),
+    'accounts_js': json.dumps(accounts_dict),
+    'account': account,
     'page': page,
     'filter_form': filter_form,
+    'modify_form': modify_form,
   })
   return HttpResponse(template.render(c))
 

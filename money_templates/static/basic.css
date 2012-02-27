@@ -55,6 +55,28 @@ table.transactions .debit {
   color: #900;
 }
 
+.balance-match {
+  color: #3a3;
+  font-weight: bold;
+}
+.balance-mismatch {
+  color: #900;
+  font-weight: bold;
+}
+.balance-unknown {
+  color: #cc0;
+  font-weight: bold;
+  font-size: 90%;
+  position: relative;
+  top: -.05em;
+  left: .2em;
+}
+
+.warning {
+  color: #900;
+  max-width: 600px;
+}
+
 .clear {
   clear: both;
 }
@@ -73,9 +95,12 @@ table.transactions .debit {
   background-color: #ccc;
 }
 
-#form-filters th {
+table.form-table th {
   text-align: left;
   font-weight: normal;
+}
+table.form-table select {
+  max-width: 12em;
 }
 
 #form-filters tr.field-opposing_account {

@@ -1,31 +1,45 @@
 {% load template_extras %}
-<div class="block{% if acct.index == 0 %} block-first{% endif %}">
+<div class="block{% if account.webapp_index == 0 %} block-first{% endif %}">
   <table>
     <tr>
       <td class="description">Account:</td>
       <td class="content">
-        {% if acct.show_link %}
-          <a href="{% url views.account acct.index %}">{{ acct.name }}</a>
+        {% if show_account_links %}
+          <a href="{% url views.account account.webapp_index %}">{{ account.name }}</a>
         {% else %}
-          {{ acct.name }}
+          {{ account.name }}
         {% endif %}
       </td>
     </tr>
     <tr>
       <td class="description">Type:</td>
-      <td class="content">{{ acct.type }}</td>
+      <td class="content">{{ account.type.title }}</td>
     </tr>
     <tr>
       <td class="description">Balance:</td>
-      <td class="content">{{ acct.balance|format_dollar_amount }}</td>
+      <td class="content">
+        {{ account.balance|format_dollar_amount }}
+        {% if account.balance == account.last_update.balance %}
+          <span class="balance-match" title="Balance matches">&#10004;</span>
+        {% else %}
+          {% if account.last_update.balance == None %}
+            <span class="balance-unknown" title="Balance unverified">?</span>
+          {% else %}
+            <span class="balance-mismatch"
+              title="Balance does not match (source: {{ account.last_update.balance|format_dollar_amount }})">
+              &#10006;
+            </span>
+          {% endif %}
+        {% endif %}
+      </td>
     </tr>
     <tr>
       <td class="description">As of:</td>
-      <td class="content">{{ acct.updated|format_date_time }}</td>
+      <td class="content">{{ account.last_update.updated|utc_to_local|format_date_time }}</td>
     </tr>
     <tr>
       <td class="description">Changed:</td>
-      <td class="content">{{ acct.last_transaction|format_date_time }}</td>
+      <td class="content">{{ account.last_transaction_date|utc_to_local|format_date_time }}</td>
     </tr>
   </table>
 </div>

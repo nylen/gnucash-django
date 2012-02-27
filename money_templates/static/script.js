@@ -56,7 +56,14 @@ $(function() {
     selectAll: '#id_opposing_accounts_0'
   });
 
-  $('#form-filters :text').selectfocus();
+  $('#form-filters input[name=opposing_accounts]').each(function() {
+    var guid = $(this).val();
+    if (guid in accounts) {
+      $(this).closest('label').attr('title', accounts[guid].path);
+    }
+  });
+
+  $('#forms :text').attr('autocomplete', 'off').selectfocus();
 
 
   $('#filter-multi-accounts').click(function() {
@@ -155,4 +162,11 @@ $(function() {
       $('#id_min_date, #id_max_date').css('visibility', 'visible');
     }
   });
+
+
+  // The Android ICS browser doesn't seem to give disabled/readonly input
+  // fields any special styling.  Apply some manually.
+  if (navigator.userAgent.toLowerCase().indexOf('android') >= 0) {
+    $('input.disabled, input.readonly').css('backgroundColor', '#ddd');
+  }
 });

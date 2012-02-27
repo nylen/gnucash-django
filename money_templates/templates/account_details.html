@@ -8,7 +8,8 @@
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
     <script type="text/javascript">
       var filteringAny = {% if filtering_any %}1{% else %}0{% endif %};
-      var regexChars = '{{ regex_chars_js }}';
+      var regexChars = {{ regex_chars_js|safe }};
+      var accounts = {{ accounts_js|safe }};
     </script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.shiftcheckbox.js"></script>
@@ -24,20 +25,14 @@
     <div class="block" id="forms">
       <div id="form-links">
         <a class="toggle-form" data-form="filters" id="toggle-filters" href="#">Filters</a>
-        <a class="toggle-form" data-form="actions" href="#">Actions</a>
+        <a class="toggle-form" data-form="modify" href="#">Modify</a>
       </div>
       <div class="clear" id="before-forms" />
       <div id="form-filters" class="form block block-first">
         {% include "filter_form.html" %}
       </div>
-      <div id="form-actions" class="form block">
-        test<br />
-        test<br />
-        test<br />
-        test<br />
-        test<br />
-        test<br />
-        test<br />
+      <div id="form-modify" class="form block">
+        {% include "modify_form.html" %}
       </div>
     </div>
     <div class="block">

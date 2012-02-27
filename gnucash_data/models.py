@@ -2,6 +2,8 @@ from django.db        import connections, models
 from django.db.models import Max
 from decimal          import Decimal
 
+import settings
+
 
 class Book(models.Model):
   from_gnucash_api = True
@@ -59,17 +61,13 @@ class Account(models.Model):
     utc = s.aggregate(max_date=Max('transaction__enter_date'))['max_date']
     return utc
 
-  def last_updated(self):
-    cursor = connections['default'].cursor()
-    cursor.execute('''
-        SELECT MAX(updated)
-        FROM account_updates
-        WHERE account_guid = %s
-      ''', [self.guid])
-    u = cursor.fetchone()
-    if u is None:
-      return self.last_transaction_date()
-    return u[0]
+  def last_update(self):
+    updates = Update.objects.filter(account=self.guid)
+    try:
+      max_updated = updates.aggregate(max_updated=Max('updated'))['max_updated']
+      return updates.filter(updated=max_updated).get()
+    except:
+      return None
 
   def is_root(self):
     return self.guid == Account.get_root().guid
@@ -83,10 +81,14 @@ class Account(models.Model):
     parts.reverse()
     return ':'.join(parts)
 
+  def webapp_index(self):
+    return settings.ACCOUNTS_LIST.index(self.path())
+
 
 class Update(models.Model):
   account = models.CharField(max_length=32, db_column='account_guid')
   updated = models.DateTimeField()
+  balance = models.DecimalField(max_digits=30, decimal_places=5)
 
   class Meta:
     db_table = 'account_updates'
