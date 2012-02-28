@@ -8,7 +8,6 @@ $(function() {
     $(this).find('ul').hide();
     $(this).hide();
   });
-  $('#clear-filters').show();
 
   $('#forms a.toggle-form').click(function() {
     var form = $(this).data('form');
@@ -36,13 +35,6 @@ $(function() {
   }
 
   var $checkboxes = $('#form-filters tr.field-opposing_accounts :checkbox');
-
-  $('#clear-filters').click(function() {
-    $('#form-filters input[type=text], select').val('');
-    $checkboxes.attr('checked', false);
-    $('#form-filters form').submit();
-    return false;
-  });
 
   $('#form-filters form').submit(function(e) {
     if ($('#id_opposing_accounts_0').is(':checked')) {

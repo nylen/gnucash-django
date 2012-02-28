@@ -25,5 +25,5 @@
     {% endfor %}
   </table>
   <input type="submit" value="Apply" />
-  <input type="button" value="Clear" id="clear-filters" />
+  <a href="{% url views.account account.webapp_index %}">clear filters</a>
 </form>
