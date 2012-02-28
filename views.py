@@ -1,12 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator          import Paginator, EmptyPage, PageNotAnInteger
-from django.db                      import connections
-from django.db.models               import F
 from django.http                    import HttpResponse
 from django.template                import RequestContext, loader
 
 from gnucash_data.models            import Account, Split, Lock
-from utils.misc_functions           import utc_to_local
 
 import datetime
 import json
