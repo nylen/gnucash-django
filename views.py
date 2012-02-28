@@ -5,9 +5,9 @@ from django.template                import RequestContext, loader
 
 from gnucash_data.models            import Account, Split, Lock
 
-import datetime
 import json
 
+import filters
 import forms
 import settings
 
@@ -30,64 +30,25 @@ def account(request, index):
 
   path = settings.ACCOUNTS_LIST[int(index)]
   account = Account.from_path(path)
-
-  items_per_page = 50
-
-  splits = account.split_set.select_related(depth=3)
-
-  filtering_any = False
-  filtering_opposing_accounts = False
-  tx_desc = ''
-  regex_chars = '^$()[]?*+|\\'
+  splits = filters.TransactionSplitFilter(account)
 
   choices = forms.AccountChoices(account)
 
   filter_form = forms.FilterForm(choices, request.GET)
-
   if filter_form.is_valid():
+    splits.filter_splits(filter_form.cleaned_data)
 
-    opposing_account_guids = filter_form.cleaned_data['opposing_accounts']
-    if opposing_account_guids and 'all' not in opposing_account_guids:
-      filtering_any = True
-      filtering_opposing_accounts = True
-      splits = splits.filter(transaction__split__account__guid__in=opposing_account_guids)
-
-    tx_desc = filter_form.cleaned_data['tx_desc']
-    if tx_desc:
-      filtering_any = True
-      if True in (c in tx_desc for c in regex_chars):
-        splits = splits.filter(transaction__description__iregex=tx_desc)
-      else:
-        splits = splits.filter(transaction__description__icontains=tx_desc)
-
-    min_date = filter_form.cleaned_data['min_date']
-    if min_date:
-      filtering_any = True
-      splits = splits.filter(transaction__post_date__gte=min_date)
-      min_date = splits.count()
-
-    max_date = filter_form.cleaned_data['max_date']
-    if max_date:
-      filtering_any = True
-      # Yes, this is weird.  No, it doesn't work otherwise.
-      splits = splits.filter(transaction__post_date__lt=max_date + datetime.timedelta(days=1))
-      max_date = splits.count()
-
+  splits.order_filtered_splits()
 
   modify_form = forms.ModifyForm(choices, request.GET, auto_id="modify_id_%s")
-
-
-  splits = splits.order_by(
-    'transaction__post_date',
-    'transaction__enter_date',
-    'guid').reverse()
 
   try:
     page_num = int(request.GET.get('page'))
   except:
     page_num = 1
 
-  pages = Paginator(splits, items_per_page)
+  items_per_page = 50
+  pages = Paginator(splits.filtered_splits, items_per_page)
 
   try:
     page = pages.page(page_num)
@@ -97,10 +58,9 @@ def account(request, index):
     page = pages.page(pages.num_pages)
 
   c = RequestContext(request, {
-    'filtering_any': filtering_any,
-    'filtering_opposing_accounts': filtering_opposing_accounts,
-    'tx_desc': tx_desc,
-    'regex_chars_js': json.dumps(regex_chars),
+    'any_filters_applied': splits.any_filters_applied,
+    'opposing_account_filter_applied': splits.opposing_account_filter_applied,
+    'regex_chars_js': json.dumps(filters.TransactionSplitFilter.REGEX_CHARS),
     'accounts_js': json.dumps(choices.accounts_dict),
     'account': account,
     'page': page,
@@ -112,23 +72,46 @@ def account(request, index):
 
 @login_required
 def modify(request, index):
-  path = settings.ACCOUNTS_LIST[int(index)]
-  account = Account.from_path(path)
-
   template = loader.get_template('modify.html')
 
-  lock = Lock.obtain()
+  path = settings.ACCOUNTS_LIST[int(index)]
+  account = Account.from_path(path)
+  splits = filters.TransactionSplitFilter(account)
 
   choices = forms.AccountChoices(account)
 
-  # TODO: use a modified copy of request.POST
-  hidden_filter_form = forms.HiddenFilterForm(choices, request.POST)
+  opposing_account_guid = request.POST['change_opposing_account']
+  opposing_account = Account.objects.get(guid=opposing_account_guid)
 
-  Lock.release()
+  filter_form = forms.HiddenFilterForm(choices, request.POST)
+  if filter_form.is_valid():
+    splits.filter_splits(filter_form.cleaned_data)
+
+  form_data = request.POST.copy()
+
+  modified_transactions = False
+
+  tx_count = splits.filtered_splits.count()
+  if tx_count > 0:
+    tx_guids = splits.filtered_splits.distinct().values('transaction__guid')
+    split_guids = list(Split.objects.filter(transaction__guid__in=tx_guids)
+      .exclude(account=account).values_list('guid', flat=True))
+
+    Lock.obtain()
+    Split.objects.filter(guid__in=split_guids).update(account=opposing_account)
+    Lock.release()
+
+    form_data['opposing_accounts'] = opposing_account_guid
+
+    modified_transactions = True
+
+  hidden_filter_form = forms.HiddenFilterForm(choices, form_data)
 
   c = RequestContext(request, {
-    'lock': lock,
-    'account_index': index,
+    'account': account,
+    'opposing_account': opposing_account,
     'hidden_filter_form': hidden_filter_form,
+    'modified_transactions': modified_transactions,
+    'tx_count': tx_count,
   })
   return HttpResponse(template.render(c))

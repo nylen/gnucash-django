@@ -7,7 +7,17 @@
   </head>
   <body>
     <div class="block block-first">
-      Obtained and released lock {{ lock.hostname }}:{{ lock.process_id }}
+      {% if modified_transactions %}
+        <div class="note">
+          Modified <b>{{ tx_count }}</b> transaction{% if tx_count != 1 %}s{% endif %}
+          in account <b>{{ account.path }}</b> - set opposing account to
+          <b>{{ opposing_account.path }}</b>.
+        </div>
+      {% else %}
+        <div class="warning">
+          No transactions were modified.
+        </div>
+      {% endif %}
     </div>
     <div class="block">
       {% include "hidden_filter_form.html" %}
