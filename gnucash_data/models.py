@@ -6,6 +6,7 @@ import os
 import psutil
 import socket
 
+from memoize import memoized
 import settings
 
 
@@ -31,6 +32,7 @@ class Account(models.Model):
     db_table = 'accounts'
 
   @staticmethod
+  @memoized
   def from_path(path):
     parts = path.split(':')
     a = Account.get_root()
@@ -76,6 +78,7 @@ class Account(models.Model):
   def is_root(self):
     return self.guid == Account.get_root().guid
 
+  @memoized
   def path(self):
     parts = []
     a = self
@@ -85,6 +88,7 @@ class Account(models.Model):
     parts.reverse()
     return ':'.join(parts)
 
+  @memoized
   def webapp_index(self):
     return settings.ACCOUNTS_LIST.index(self.path())
 
