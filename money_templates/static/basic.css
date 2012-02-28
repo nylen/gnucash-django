@@ -72,9 +72,11 @@ table.transactions .debit {
   left: .2em;
 }
 
+.note, .warning {
+  max-width: 600px;
+}
 .warning {
   color: #900;
-  max-width: 600px;
 }
 
 .clear {

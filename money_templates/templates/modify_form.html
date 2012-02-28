@@ -1,7 +1,8 @@
-<form action="{% url views.account 11 %}" method="post">
+<form action="{% url views.modify account.webapp_index %}" method="post">
   <table id="modify-fields" class="form-table">
     {{ modify_form.as_table }}
   </table>
+  {% csrf_token %}
   <div class="warning">
     <b>WARNING</b>: This will change <b>ALL</b> of the currently visible
     transactions on <b>ALL</b> pages!  (If an amount range is provided,

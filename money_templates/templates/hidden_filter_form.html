@@ -1,0 +1,9 @@
+<form action="{% url views.account account_index %}" method="get">
+  {{ hidden_filter_form.as_p }}
+  <input type="submit" value="Return to transactions list" />
+  <div class="note">
+    <b>NOTE</b>: Clicking the button above will show all of the transactions
+    that were just modified, but the list may also include some additional
+    transactions that already met all of the criteria for the current filter.
+  </div>
+</form>

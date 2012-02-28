@@ -9,6 +9,7 @@ import os
 urlpatterns = patterns('',
     (r'^$', 'money.views.index'),
     (r'^accounts/(?P<index>[0-9]+)$', 'money.views.account'),
+    (r'^accounts/modify/(?P<index>[0-9]+)$', 'money.views.modify'),
 
     (r'^static/(?P<path>.*)$', 'django.contrib.staticfiles.views.serve'),
 

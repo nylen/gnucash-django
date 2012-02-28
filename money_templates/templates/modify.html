@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Modify account</title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
+  </head>
+  <body>
+    <div class="block block-first">
+      Obtained and released lock {{ lock.hostname }}:{{ lock.process_id }}
+    </div>
+    <div class="block">
+      {% include "hidden_filter_form.html" %}
+    </div>
+  </body>
+</html>

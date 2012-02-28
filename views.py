@@ -5,7 +5,7 @@ from django.db.models               import F
 from django.http                    import HttpResponse
 from django.template                import RequestContext, loader
 
-from gnucash_data.models            import Account, Split
+from gnucash_data.models            import Account, Split, Lock
 from utils.misc_functions           import utc_to_local
 
 import datetime
@@ -30,6 +30,7 @@ def index(request):
 @login_required
 def account(request, index):
   template = loader.get_template('account_details.html')
+
   path = settings.ACCOUNTS_LIST[int(index)]
   account = Account.from_path(path)
 
@@ -42,78 +43,9 @@ def account(request, index):
   tx_desc = ''
   regex_chars = '^$()[]?*+|\\'
 
-  cursor = connections['gnucash'].cursor()
-  cursor.execute('''
-      SELECT a.guid, a.name, a.parent_guid,
+  choices = forms.AccountChoices(account)
 
-        CASE
-          WHEN s.account_guid IS NULL THEN 0
-          ELSE 1
-        END AS is_present,
-
-        a.placeholder
-
-      FROM accounts a
-
-      LEFT JOIN (
-        SELECT s2.account_guid,
-          MAX(t.post_date) post_date
-
-        FROM splits s
-
-        INNER JOIN transactions t
-        ON s.tx_guid = t.guid
-
-        INNER JOIN splits s2
-        ON s2.tx_guid = t.guid
-
-        WHERE s.account_guid = %s
-        AND s2.account_guid <> %s
-
-        GROUP BY 1
-      ) s
-      ON s.account_guid = a.guid
-
-      WHERE a.account_type <> 'ROOT'
-    ''', [account.guid, account.guid])
-
-  accounts_dict = {}
-
-  opposing_account_choices = []
-  change_account_choices = []
-
-  for row in cursor.fetchall():
-    if row[3]:
-      opposing_account_choices.append((row[0], row[1]))
-    accounts_dict[row[0]] = {
-      'name': row[1],
-      'parent_guid': row[2],
-      'placeholder': row[4],
-    }
-
-  for guid, a in accounts_dict.items():
-    if not a['placeholder']:
-      path_list = [a['name']]
-      parent_guid = a['parent_guid']
-      while parent_guid in accounts_dict:
-        path_list.append(accounts_dict[parent_guid]['name'])
-        parent_guid = accounts_dict[parent_guid]['parent_guid']
-      path_list.reverse()
-      a['path'] = ':'.join(path_list)
-      if guid != account.guid:
-        change_account_choices.append((guid, a['path']))
-
-  get_account_path = lambda a: accounts_dict[a[0]]['path']
-  opposing_account_choices.sort(key=get_account_path)
-  change_account_choices.sort(key=get_account_path)
-
-  opposing_account_choices = \
-    forms.DEFAULT_OPPOSING_ACCOUNT_CHOICES + opposing_account_choices
-  change_account_choices = \
-    forms.DEFAULT_CHANGE_ACCOUNT_CHOICES + change_account_choices
-
-
-  filter_form = forms.FilterForm(opposing_account_choices, request.GET)
+  filter_form = forms.FilterForm(choices, request.GET)
 
   if filter_form.is_valid():
 
@@ -145,8 +77,7 @@ def account(request, index):
       max_date = splits.count()
 
 
-  modify_form = forms.ModifyForm(change_account_choices, opposing_account_choices,
-    request.GET, auto_id="modify_id_%s")
+  modify_form = forms.ModifyForm(choices, request.GET, auto_id="modify_id_%s")
 
 
   splits = splits.order_by(
@@ -173,7 +104,7 @@ def account(request, index):
     'filtering_opposing_accounts': filtering_opposing_accounts,
     'tx_desc': tx_desc,
     'regex_chars_js': json.dumps(regex_chars),
-    'accounts_js': json.dumps(accounts_dict),
+    'accounts_js': json.dumps(choices.accounts_dict),
     'account': account,
     'page': page,
     'filter_form': filter_form,
@@ -181,3 +112,26 @@ def account(request, index):
   })
   return HttpResponse(template.render(c))
 
+
+@login_required
+def modify(request, index):
+  path = settings.ACCOUNTS_LIST[int(index)]
+  account = Account.from_path(path)
+
+  template = loader.get_template('modify.html')
+
+  lock = Lock.obtain()
+
+  choices = forms.AccountChoices(account)
+
+  # TODO: use a modified copy of request.POST
+  hidden_filter_form = forms.HiddenFilterForm(choices, request.POST)
+
+  Lock.release()
+
+  c = RequestContext(request, {
+    'lock': lock,
+    'account_index': index,
+    'hidden_filter_form': hidden_filter_form,
+  })
+  return HttpResponse(template.render(c))

@@ -2,6 +2,10 @@ from django.db        import connections, models
 from django.db.models import Max
 from decimal          import Decimal
 
+import os
+import psutil
+import socket
+
 import settings
 
 
@@ -136,7 +140,54 @@ class Split(models.Model):
 
   def __unicode__(self):
     return '%s - %s - %0.2f' % (
-        unicode(self.account),
-        unicode(self.transaction),
-        self.amount())
+      unicode(self.account),
+      unicode(self.transaction),
+      self.amount())
 
+class Lock(models.Model):
+  from_gnucash_api = True
+
+  hostname = models.CharField(max_length=255, db_column='Hostname')
+  process_id = models.IntegerField(db_column='PID', primary_key=True)
+
+  class Meta:
+    db_table = 'gnclock'
+
+  @staticmethod
+  def can_obtain():
+    return (Lock.objects.count() == 0)
+
+  @staticmethod
+  def check_can_obtain():
+    if not Lock.can_obtain():
+      lock = Lock.objects.all()[0]
+      try:
+        name = psutil.Process(int(lock.process_id)).name
+      except psutil.NoSuchProcess:
+        name = 'unknown process'
+      raise IOError('Cannot lock gnucash DB tables - locked by %s:%i (%s)'
+        % (lock.hostname, lock.process_id, name))
+
+  @staticmethod
+  def obtain():
+    Lock.check_can_obtain()
+    # TODO: How to prevent a race condition here?
+    lock = Lock()
+    lock.hostname = Lock._fake_hostname()
+    lock.process_id = os.getpid()
+    lock.save()
+    return lock
+
+  @staticmethod
+  def _fake_hostname():
+    return '%s@%s' % (psutil.Process(os.getpid()).name, socket.gethostname())
+
+  @staticmethod
+  def release():
+    lock = Lock.objects \
+      .filter(hostname=Lock._fake_hostname()) \
+      .filter(process_id=os.getpid())
+    n = lock.count()
+    if n != 1:
+      raise IOError('Expected 1 lock; found %i' % n)
+    lock.delete()
