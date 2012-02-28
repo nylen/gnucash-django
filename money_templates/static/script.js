@@ -161,4 +161,28 @@ $(function() {
   if (navigator.userAgent.toLowerCase().indexOf('android') >= 0) {
     $('input.disabled, input.readonly').css('backgroundColor', '#ddd');
   }
+
+  // Resize textboxes and select elements up to a maximum width.
+  var windowWidth = $(window).width();
+  if (windowWidth >= 800) {
+    var maxWidths = {
+      'input': 450,
+      'select': 200
+    };
+    $('table.form-table').each(function() {
+      var dims = $(this).hiddenDimensions();
+      console.log(this, dims);
+      var widthUncapped = windowWidth - dims.width - 20;
+      $('input:text, select', this).each(function() {
+        console.log(this, this.nodeName);
+        var width = Math.min(
+          widthUncapped,
+          maxWidths[this.nodeName.toLowerCase()]);
+        $(this).css({
+          'width': width,
+          'maxWidth': width
+        });
+      });
+    });
+  }
 });
