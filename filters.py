@@ -13,37 +13,38 @@ class TransactionSplitFilter():
     self.opposing_account_filter_applied = False
 
   def filter_splits(self, data):
-    opposing_account_guids = data['opposing_accounts']
-    if opposing_account_guids and 'all' not in opposing_account_guids:
-      if self.account.guid in opposing_account_guids:
+    self.opposing_account_guids = data['opposing_accounts']
+    if self.opposing_account_guids and 'all' not in self.opposing_account_guids:
+      if self.account.guid in self.opposing_account_guids:
         raise ValueError('Tried to filter transactions on account = opposing_account')
       self.any_filters_applied = True
       self.opposing_account_filter_applied = True
       self.filtered_splits = \
-        self.filtered_splits.filter(transaction__split__account__guid__in=opposing_account_guids)
+        self.filtered_splits.filter(transaction__split__account__guid__in=self.opposing_account_guids)
 
-    tx_desc = data['tx_desc']
-    if tx_desc:
+    self.tx_desc = data['tx_desc']
+    if self.tx_desc:
       self.any_filters_applied = True
-      if True in (c in tx_desc for c in TransactionSplitFilter.REGEX_CHARS):
+      self.tx_desc_is_regex = (True in (c in self.tx_desc for c in TransactionSplitFilter.REGEX_CHARS))
+      if self.tx_desc_is_regex:
         self.filtered_splits = \
-          self.filtered_splits.filter(transaction__description__iregex=tx_desc)
+          self.filtered_splits.filter(transaction__description__iregex=self.tx_desc)
       else:
         self.filtered_splits = \
-          self.filtered_splits.filter(transaction__description__icontains=tx_desc)
+          self.filtered_splits.filter(transaction__description__icontains=self.tx_desc)
 
-    min_date = data['min_date']
-    if min_date:
+    self.min_date = data['min_date']
+    if self.min_date:
       self.any_filters_applied = True
       self.filtered_splits = \
-        self.filtered_splits.filter(transaction__post_date__gte=min_date)
+        self.filtered_splits.filter(transaction__post_date__gte=self.min_date)
 
-    max_date = data['max_date']
-    if max_date:
+    self.max_date = data['max_date']
+    if self.max_date:
       self.any_filters_applied = True
       # Yes, this is weird.  No, it doesn't work otherwise.
       self.filtered_splits = \
-        self.filtered_splits.filter(transaction__post_date__lt=max_date + datetime.timedelta(days=1))
+        self.filtered_splits.filter(transaction__post_date__lt=self.max_date + datetime.timedelta(days=1))
 
   @staticmethod
   def _ordered_splits(splits):

@@ -35,20 +35,21 @@ class ModifyForm(FilterForm):
     self.fields['change_opposing_account'] = forms.ChoiceField(
       required=False, initial='', choices=choices.modify_account_choices)
 
-    self.fields['min_amount'] = forms.IntegerField(
+    self.fields['min_amount'] = forms.DecimalField(
       required=False, initial='')
-    self.fields['max_amount'] = forms.IntegerField(
+    self.fields['max_amount'] = forms.DecimalField(
       required=False, initial='')
     self.fields['save_rule'] = forms.BooleanField(
-      required=False, initial=False,
+      required=False, initial=True,
       label='Save rule for future transactions')
 
 
 class HiddenFilterForm(FilterForm):
-  def __init__(self, accounts, *args, **kwargs):
-    super(HiddenFilterForm, self).__init__(accounts, *args, **kwargs)
+  def __init__(self, choices, *args, **kwargs):
+    super(HiddenFilterForm, self).__init__(choices, *args, **kwargs)
 
     self.fields['opposing_accounts'].widget = forms.MultipleHiddenInput()
+    self.fields['opposing_accounts'].choices = choices.filter_all_account_choices
     self.fields['min_date'].widget = forms.HiddenInput()
     self.fields['max_date'].widget = forms.HiddenInput()
     self.fields['tx_desc'].widget = forms.HiddenInput()
@@ -93,10 +94,12 @@ class AccountChoices():
 
     accounts_dict = {}
 
+    filter_all_account_choices = []
     filter_account_choices = []
     modify_account_choices = []
 
     for row in cursor.fetchall():
+      filter_all_account_choices.append((row[0], row[1]))
       if row[3]:
         filter_account_choices.append((row[0], row[1]))
       accounts_dict[row[0]] = {
@@ -123,6 +126,8 @@ class AccountChoices():
 
     self.accounts_dict = accounts_dict
 
+    self.filter_all_account_choices = \
+      DEFAULT_FILTER_ACCOUNT_CHOICES + filter_all_account_choices
     self.filter_account_choices = \
       DEFAULT_FILTER_ACCOUNT_CHOICES + filter_account_choices
     self.modify_account_choices = \

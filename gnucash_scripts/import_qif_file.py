@@ -110,7 +110,7 @@ try:
 
   if updated:
     u = models.Update()
-    u.account = acct.GetGUID().to_string()
+    u.account_guid = acct.GetGUID().to_string()
     u.updated = datetime.utcnow()
     u.balance = balance
     u.save(using='default')

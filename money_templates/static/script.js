@@ -9,6 +9,15 @@ $(function() {
     $(this).hide();
   });
 
+  function showFilterForm(slow) {
+    if (!$('#form-filters').is(':visible')) {
+      if (!slow) {
+        $('#form-filters').show();
+      }
+      $('#toggle-filters').trigger('click');
+    }
+  }
+
   $('#forms a.toggle-form').click(function() {
     var form = $(this).data('form');
     var $form = $('#form-' + form);
@@ -30,8 +39,7 @@ $(function() {
   });
 
   if (filteringAny) {
-    $('#form-filters').show();
-    $('#toggle-filters').trigger('click');
+    showFilterForm();
   }
 
   var $checkboxes = $('#form-filters tr.field-opposing_accounts :checkbox');
@@ -113,45 +121,57 @@ $(function() {
   }
 
   $('table.transactions td.description').click(function() {
-    if ($('#form-filters').is(':visible')) {
-      var thisValue = $(this).data('value');
-      var txDesc = $('#id_tx_desc').val();
+    showFilterForm(true);
 
-      for (i in regexChars) {
-        var c = regexChars.charAt(i);
-        if (thisValue.indexOf(c) >= 0) {
-          thisValue = RegExp.escape(thisValue);
-          break;
-        }
+    var thisValue = $(this).data('value');
+    var txDesc = $('#id_tx_desc').val();
+
+    for (i in regexChars) {
+      var c = regexChars.charAt(i);
+      if (thisValue.indexOf(c) >= 0) {
+        thisValue = RegExp.escape(thisValue);
+        break;
       }
-
-      $('#id_tx_desc').val(thisValue == txDesc ? '' : thisValue);
-      // Hack to make the Android ICS browser actually display the new value
-      $('#id_tx_desc').css('visibility', 'visible');
     }
+
+    $('#id_tx_desc').val(thisValue == txDesc ? '' : thisValue);
+    // Hack to make the Android ICS browser actually display the new value
+    $('#id_tx_desc').css('visibility', 'visible');
   });
 
   $('table.transactions td.date').click(function() {
-    if ($('#form-filters').is(':visible')) {
-      var thisDate = new Date(Date.parse($(this).data('value')));
-      var minDate  = new Date(Date.parse($('#id_min_date').val()));
-      var maxDate  = new Date(Date.parse($('#id_max_date').val()));
-      if (thisDate < minDate) {
-        minDate = thisDate;
-      } else if (thisDate > maxDate) {
-        maxDate = thisDate;
-      } else if (thisDate - minDate == 0 && thisDate - maxDate == 0) {
-        // Can't use == to compare dates
-        minDate = NaN;
-        maxDate = NaN;
-      } else {
-        minDate = thisDate;
-        maxDate = thisDate;
-      }
-      $('#id_min_date').val(formatDate(minDate));
-      $('#id_max_date').val(formatDate(maxDate));
-      // Hack to make the Android ICS browser actually display the new value
-      $('#id_min_date, #id_max_date').css('visibility', 'visible');
+    showFilterForm(true);
+
+    var thisDate = new Date(Date.parse($(this).data('value')));
+    var minDate  = new Date(Date.parse($('#id_min_date').val()));
+    var maxDate  = new Date(Date.parse($('#id_max_date').val()));
+    if (thisDate < minDate) {
+      minDate = thisDate;
+    } else if (thisDate > maxDate) {
+      maxDate = thisDate;
+    } else if (thisDate - minDate == 0 && thisDate - maxDate == 0) {
+      // Can't use == to compare dates
+      minDate = NaN;
+      maxDate = NaN;
+    } else {
+      minDate = thisDate;
+      maxDate = thisDate;
+    }
+    $('#id_min_date').val(formatDate(minDate));
+    $('#id_max_date').val(formatDate(maxDate));
+    // Hack to make the Android ICS browser actually display the new value
+    $('#id_min_date, #id_max_date').css('visibility', 'visible');
+  });
+
+
+  $('#form-modify form').submit(function(e) {
+    if (!$('#modify_id_change_opposing_account').val()) {
+      alert('Select an opposing account first.');
+      return false;
+    }
+    if (numTransactions > 100) {
+      return confirm('This action may affect more than 100 '
+        + 'transactions.  Are you sure you want to continue?');
     }
   });
 

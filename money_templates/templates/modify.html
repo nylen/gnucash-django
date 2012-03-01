@@ -6,7 +6,15 @@
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
   </head>
   <body>
-    <div class="block block-first">
+    {% if errors %}
+      <div class="block block-first">
+        <div class="warning">
+          Error(s) occurred: <br />
+          {{ errors }}
+        </div>
+      </div>
+    {% endif %}
+    <div class="block{% if not errors %} block-first{% endif %}">
       {% if modified_transactions %}
         <div class="note">
           Modified <b>{{ tx_count }}</b> transaction{% if tx_count != 1 %}s{% endif %}

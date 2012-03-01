@@ -10,6 +10,7 @@
       var filteringAny = {% if any_filters_applied %}1{% else %}0{% endif %};
       var regexChars = {{ regex_chars_js|safe }};
       var accounts = {{ accounts_js|safe }};
+      var numTransactions = {{ num_transactions_js|safe }};
     </script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.shiftcheckbox.js"></script>

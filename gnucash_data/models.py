@@ -68,7 +68,7 @@ class Account(models.Model):
     return utc
 
   def last_update(self):
-    updates = Update.objects.filter(account=self.guid)
+    updates = Update.objects.filter(account_guid=self.guid)
     try:
       max_updated = updates.aggregate(max_updated=Max('updated'))['max_updated']
       return updates.filter(updated=max_updated).get()
@@ -94,7 +94,7 @@ class Account(models.Model):
 
 
 class Update(models.Model):
-  account = models.CharField(max_length=32, db_column='account_guid')
+  account_guid = models.CharField(max_length=32)
   updated = models.DateTimeField()
   balance = models.DecimalField(max_digits=30, decimal_places=5)
 
@@ -195,3 +195,22 @@ class Lock(models.Model):
     if n != 1:
       raise IOError('Expected 1 lock; found %i' % n)
     lock.delete()
+
+
+class Rule(models.Model):
+  opposing_account_guid = models.CharField(max_length=32)
+  match_tx_desc = models.CharField(max_length=2048)
+  is_regex = models.BooleanField()
+  min_amount = models.DecimalField(max_digits=30, decimal_places=5, null=True)
+  max_amount = models.DecimalField(max_digits=30, decimal_places=5, null=True)
+
+  class Meta:
+    db_table = 'rules'
+
+
+class RuleAccount(models.Model):
+  rule = models.ForeignKey('Rule')
+  account_guid = models.CharField(max_length=32)
+
+  class Meta:
+    db_table = 'rule_accounts'
