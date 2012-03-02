@@ -97,7 +97,7 @@ class Account(models.Model):
 class Update(models.Model):
   account_guid = models.CharField(max_length=32)
   updated = models.DateTimeField()
-  balance = models.DecimalField(max_digits=30, decimal_places=5)
+  balance = models.DecimalField(max_digits=30, decimal_places=5, null=True)
 
   class Meta:
     db_table = 'account_updates'
