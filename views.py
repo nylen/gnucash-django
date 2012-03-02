@@ -148,8 +148,10 @@ def modify(request, index):
 
         if tx_count > 0:
           Lock.obtain()
-          Split.objects.filter(guid__in=split_guids).update(account=opposing_account)
-          Lock.release()
+          try:
+            Split.objects.filter(guid__in=split_guids).update(account=opposing_account)
+          finally:
+            Lock.release()
           form_data['opposing_accounts'] = opposing_account_guid
           modified_transactions = True
 
