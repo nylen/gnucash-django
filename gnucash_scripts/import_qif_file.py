@@ -24,6 +24,9 @@ setup_environ(settings)
 
 from gnucash_data import models
 
+# make sure we can begin a session
+models.Lock.check_can_obtain()
+
 # begin GnuCash API session
 session = Session(settings.GNUCASH_CONN_STRING)
 
@@ -34,7 +37,11 @@ try:
 
   root = book.get_root_account()
   acct = get_account_by_path(root, argv[1])
+  acct_guid = acct.GetGUID().to_string()
   imbalance = get_account_by_path(root, 'Imbalance-USD')
+
+  rules = [ra.rule for ra in models.RuleAccount.objects
+    .filter(account_guid=acct_guid).select_related().distinct('rule__id')]
 
   # TODO: Do we need to use list() here? (time vs memory tradeoff)
   ids = set(get_transaction_id(s.parent, acct) for s in acct.GetSplitList())
@@ -48,7 +55,7 @@ try:
       for line in bal:
         line = line.rstrip()
         if line:
-          balance = Decimal(line.rstrip())
+          balance = Decimal(line)
     except:
       pass
 
@@ -81,6 +88,8 @@ try:
             print 'Not adding duplicate transaction %s' % str(this_id)
           else:
             print 'Adding transaction %s' % str(this_id)
+            gnc_amount = GncNumeric(txinfo['cents'], 100)
+
             # From example script 'test_imbalance_transaction.py'
             trans = Transaction(book)
             trans.BeginEdit()
@@ -98,9 +107,21 @@ try:
               split1.SetMemo(txinfo['memo'])
             # The docs say both of these are needed:
             # http://svn.gnucash.org/docs/HEAD/group__Transaction.html
-            split1.SetValue(GncNumeric(txinfo['cents'], 100))
-            split1.SetAmount(GncNumeric(txinfo['cents'], 100))
+            split1.SetValue(gnc_amount)
+            split1.SetAmount(gnc_amount)
             split1.SetReconcile('c')
+
+            for rule in rules:
+              if rule.is_match(txinfo['description'], Decimal(txinfo['cents']) / 100):
+                opposing_acct = get_account_by_guid(root, rule.opposing_account_guid)
+                print 'Categorizing transaction %s as %s' % (str(this_id), get_account_path(opposing_acct))
+                split2 = Split(book)
+                split2.SetParent(trans)
+                split2.SetAccount(opposing_acct)
+                split2.SetValue(gnc_amount.neg())
+                split2.SetAmount(gnc_amount.neg())
+                split2.SetReconcile('c')
+                break
 
             trans.CommitEdit()
             ids.add(this_id)
@@ -110,7 +131,7 @@ try:
 
   if updated:
     u = models.Update()
-    u.account_guid = acct.GetGUID().to_string()
+    u.account_guid = acct_guid
     u.updated = datetime.utcnow()
     u.balance = balance
     u.save(using='default')

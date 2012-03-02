@@ -2,9 +2,16 @@ from datetime import datetime
 from gnucash  import Account
 
 def get_account_by_path(acct, path):
-  for name in path.split(':'):
+  for name in str(path).split(':'):
     acct = acct.lookup_by_name(name)
   return acct
+
+def get_account_by_guid(acct, guid):
+  for ptr in acct.get_descendants():
+    a = Account(instance=ptr)
+    if a.GetGUID().to_string() == guid:
+      return a
+  return None
 
 def get_account_path(acct):
   path = []
@@ -28,4 +35,3 @@ def get_transaction_amount(trans, acct):
 
 def is_same_account(acct1, acct2):
   return acct1.GetGUID().to_string() == acct2.GetGUID().to_string()
-

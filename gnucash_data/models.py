@@ -4,6 +4,7 @@ from decimal          import Decimal
 
 import os
 import psutil
+import re
 import socket
 
 from memoize import memoized
@@ -203,6 +204,26 @@ class Rule(models.Model):
   is_regex = models.BooleanField()
   min_amount = models.DecimalField(max_digits=30, decimal_places=5, null=True)
   max_amount = models.DecimalField(max_digits=30, decimal_places=5, null=True)
+
+  def is_match(self, tx_desc, amount):
+    if self.is_regex:
+      if not re.match(self.match_tx_desc, tx_desc, re.I):
+        return False
+    else:
+      if not self.match_tx_desc.lower() in tx_desc.lower():
+        return False
+
+    if self.min_amount and self.max_amount:
+      if not (self.min_amount <= abs(amount) and abs(amount) <= self.max_amount):
+        return False
+    elif self.min_amount:
+      if not (self.min_amount <= abs(amount)):
+        return False
+    elif self.max_amount:
+      if not (abs(amount) <= self.max_amount):
+        return False
+
+    return True
 
   class Meta:
     db_table = 'rules'
