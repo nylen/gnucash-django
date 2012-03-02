@@ -38,6 +38,13 @@ $(function() {
     return false;
   });
 
+  $('#toggle-filters').click(function() {
+    $('#id_tx_desc').each(function() {
+      this.focus();
+      this.select();
+    });
+  });
+
   if (filteringAny) {
     showFilterForm();
   }
@@ -134,9 +141,12 @@ $(function() {
       }
     }
 
-    $('#id_tx_desc').val(thisValue == txDesc ? '' : thisValue);
-    // Hack to make the Android ICS browser actually display the new value
-    $('#id_tx_desc').css('visibility', 'visible');
+    $('#id_tx_desc').val(thisValue == txDesc ? '' : thisValue)
+      .css('visibility', 'visible') // Android ICS browser hack
+      .each(function() {
+        this.focus();
+        this.select();
+      });
   });
 
   $('table.transactions td.date').click(function() {
@@ -145,9 +155,12 @@ $(function() {
     var thisDate = new Date(Date.parse($(this).data('value')));
     var minDate  = new Date(Date.parse($('#id_min_date').val()));
     var maxDate  = new Date(Date.parse($('#id_max_date').val()));
+    var toFocus = '#id_min_date';
+
     if (thisDate < minDate) {
       minDate = thisDate;
     } else if (thisDate > maxDate) {
+      toFocus = '#id_max_date';
       maxDate = thisDate;
     } else if (thisDate - minDate == 0 && thisDate - maxDate == 0) {
       // Can't use == to compare dates
@@ -161,6 +174,11 @@ $(function() {
     $('#id_max_date').val(formatDate(maxDate));
     // Hack to make the Android ICS browser actually display the new value
     $('#id_min_date, #id_max_date').css('visibility', 'visible');
+
+    $(toFocus).each(function() {
+      this.focus();
+      this.select();
+    });
   });
 
 
@@ -191,10 +209,8 @@ $(function() {
     };
     $('table.form-table').each(function() {
       var dims = $(this).hiddenDimensions();
-      console.log(this, dims);
       var widthUncapped = windowWidth - dims.width - 20;
       $('input:text, select', this).each(function() {
-        console.log(this, this.nodeName);
         var width = Math.min(
           widthUncapped,
           maxWidths[this.nodeName.toLowerCase()]);
