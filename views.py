@@ -12,6 +12,7 @@ import json
 
 import filters
 import forms
+import re
 import settings
 
 
@@ -52,8 +53,7 @@ def account(request, index):
   except:
     page_num = 1
 
-  items_per_page = 50
-  pages = Paginator(splits.filtered_splits, items_per_page)
+  pages = Paginator(splits.filtered_splits, settings.NUM_TRANSACTIONS_PER_PAGE)
 
   try:
     page = pages.page(page_num)
@@ -97,81 +97,27 @@ def modify(request, index):
 
   form_data = request.POST.copy()
 
-  min_amount = None
-  max_amount = None
-
-  modified_transactions = False
-  tx_count = 0
+  modified_tx_count = 0
 
   if not errors:
     modify_form = forms.ModifyForm(choices, request.POST)
     if modify_form.is_valid():
       splits.filter_splits(modify_form.cleaned_data)
 
-      min_amount = modify_form.cleaned_data['min_amount']
-      max_amount = modify_form.cleaned_data['max_amount']
-      if min_amount is None:
-        min_amount = 0
-      elif min_amount < 0:
-        raise ValueError('min_amount (%s) < 0' % min_amount)
-      if max_amount is None:
-        max_amount = 0
-      elif max_amount < 0:
-        raise ValueError('max_amount (%s) < 0' % max_amount)
-      if min_amount > max_amount:
-        raise ValueError('min_amount (%s) > max_amount (%s)' % (min_amount, max_amount))
+      save_rule = modify_form.cleaned_data['save_rule']
+      if not splits.tx_desc:
+        errors = 'Cannot save rule with no description filter.'
+        save_rule = False
 
-      tx_count = splits.filtered_splits.count()
-      if tx_count > 0:
-        tx_guids = splits.filtered_splits.distinct().values('transaction__guid')
-        splits_real = Split.objects.filter(transaction__guid__in=tx_guids).exclude(account=account)
+      modified_tx_count = filters.RuleHelper.apply(
+        splits=splits,
+        opposing_account=opposing_account,
+        min_amount=modify_form.cleaned_data['min_amount'],
+        max_amount=modify_form.cleaned_data['max_amount'],
+        save_rule=save_rule)
 
-        # ugh
-        if min_amount: min_amount -= Decimal('1e-8')
-        if max_amount: max_amount += Decimal('1e-8')
-
-        if min_amount and max_amount:
-          splits_real = splits_real.filter(
-            (Q(value_num__gte=F('value_denom') *  min_amount) & Q(value_num__lte=F('value_denom') *  max_amount)) |
-            (Q(value_num__lte=F('value_denom') * -min_amount) & Q(value_num__gte=F('value_denom') * -max_amount)))
-        elif min_amount:
-          splits_real = splits_real.filter(
-            (Q(value_num__gte=F('value_denom') *  min_amount)) |
-            (Q(value_num__lte=F('value_denom') * -min_amount)))
-        elif max_amount:
-          splits_real = splits_real.filter(
-            (Q(value_num__lte=F('value_denom') *  max_amount)) |
-            (Q(value_num__gte=F('value_denom') * -max_amount)))
-
-        split_guids = list(splits_real.distinct().values_list('guid', flat=True))
-        tx_count = len(split_guids)
-
-        if tx_count > 0:
-          Lock.obtain()
-          try:
-            Split.objects.filter(guid__in=split_guids).update(account=opposing_account)
-          finally:
-            Lock.release()
-          form_data['opposing_accounts'] = opposing_account_guid
-          modified_transactions = True
-
-      if modify_form.cleaned_data['save_rule']:
-        if splits.tx_desc:
-          rule = Rule()
-          rule.opposing_account_guid = opposing_account_guid
-          rule.match_tx_desc = splits.tx_desc
-          rule.is_regex = splits.tx_desc_is_regex
-          if min_amount: rule.min_amount = min_amount
-          if max_amount: rule.max_amount = max_amount
-          rule.save()
-
-          rule_account = RuleAccount()
-          rule_account.rule = rule
-          rule_account.account_guid = account.guid
-          rule_account.save()
-
-        else:
-          errors = 'Cannot save rule with no description filter.'
+      if modified_tx_count:
+        form_data['opposing_accounts'] = opposing_account_guid
 
     else:
       # modify_form is not valid
@@ -184,7 +130,68 @@ def modify(request, index):
     'opposing_account': opposing_account,
     'hidden_filter_form': hidden_filter_form,
     'errors': errors,
-    'modified_transactions': modified_transactions,
-    'tx_count': tx_count,
+    'modified_tx_count': modified_tx_count,
+  })
+  return HttpResponse(template.render(c))
+
+
+@login_required
+def batch_categorize(request, index):
+  template = loader.get_template('batch_categorize.html')
+
+  path = settings.ACCOUNTS_LIST[int(index)]
+  account = Account.from_path(path)
+  splits = filters.TransactionSplitFilter(account)
+
+  imbalance = Account.from_path('Imbalance-USD')
+  choices = forms.AccountChoices(account, exclude=imbalance)
+
+  merchants = splits.get_merchants_info(imbalance)
+  batch_modify_form = forms.BatchModifyForm(choices, merchants)
+
+  c = RequestContext(request, {
+    'account': account,
+    'batch_modify_form': batch_modify_form,
+    'imbalance': imbalance,
+  })
+  return HttpResponse(template.render(c))
+
+
+@login_required
+def apply_categorize(request, index):
+  template = loader.get_template('apply_categorize.html')
+
+  path = settings.ACCOUNTS_LIST[int(index)]
+  account = Account.from_path(path)
+  imbalance = Account.from_path('Imbalance-USD')
+
+  choices = forms.AccountChoices(account, exclude=imbalance)
+
+  splits = filters.TransactionSplitFilter(account)
+  merchants = splits.get_merchants_info(imbalance)
+  batch_modify_form = forms.BatchModifyForm(choices, merchants, request.POST)
+
+  if not batch_modify_form.is_valid():
+    raise ValueError(batch_modify_form.errors)
+
+  modified_tx_count = 0
+  rule_count = 0
+
+  for i in range(settings.NUM_MERCHANTS_BATCH_CATEGORIZE):
+    if 'merchant_' + str(i) in batch_modify_form.cleaned_data:
+      tx_desc = batch_modify_form.cleaned_data['merchant_name_' + str(i)]
+      opposing_account_guid = batch_modify_form.cleaned_data['merchant_' + str(i)]
+      if opposing_account_guid:
+        rule_count += 1
+        modified_tx_count += filters.RuleHelper.apply(
+          splits=splits,
+          tx_desc=tx_desc,
+          opposing_account=Account.objects.get(guid=opposing_account_guid),
+          save_rule=True)
+
+  c = RequestContext(request, {
+    'account': account,
+    'modified_tx_count': modified_tx_count,
+    'rule_count': rule_count,
   })
   return HttpResponse(template.render(c))

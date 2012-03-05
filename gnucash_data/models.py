@@ -1,5 +1,5 @@
 from django.db        import connections, models
-from django.db.models import Max
+from django.db.models import F, Q, Max
 from decimal          import Decimal
 
 import os

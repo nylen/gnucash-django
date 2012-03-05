@@ -28,6 +28,7 @@
       <div id="form-links">
         <a class="toggle-form" data-form="filters" id="toggle-filters" href="#">Filters</a>
         <a class="toggle-form" data-form="modify" href="#">Modify</a>
+        <a class="toggle-form" data-form="other" href="#">Other</a>
       </div>
       <div class="clear" id="before-forms" />
       <div id="form-filters" class="form block block-first">
@@ -35,6 +36,15 @@
       </div>
       <div id="form-modify" class="form block">
         {% include "modify_form.html" %}
+      </div>
+      <div id="form-other" class="form block">
+        <ul class="links">
+          <li>
+            <a href="{% url views.batch_categorize account.webapp_index %}">
+              Batch categorize transactions
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
     <div class="block">

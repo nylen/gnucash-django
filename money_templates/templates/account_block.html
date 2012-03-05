@@ -1,9 +1,9 @@
 {% load template_extras %}
 <div class="block{% if account.webapp_index == 0 %} block-first{% endif %}">
-  <table>
+  <table class="account-block">
     <tr>
-      <td class="description">Account:</td>
-      <td class="content">
+      <th>Account:</td>
+      <td>
         {% if show_account_links %}
           <a href="{% url views.account account.webapp_index %}">{{ account.name }}</a>
         {% else %}
@@ -12,12 +12,12 @@
       </td>
     </tr>
     <tr>
-      <td class="description">Type:</td>
-      <td class="content">{{ account.type.title }}</td>
+      <th>Type:</td>
+      <td>{{ account.type.title }}</td>
     </tr>
     <tr>
-      <td class="description">Balance:</td>
-      <td class="content">
+      <th>Balance:</td>
+      <td>
         {{ account.balance|format_dollar_amount }}
         {% if account.balance == account.last_update.balance %}
           <span class="balance-match" title="Balance matches">&#10004;</span>
@@ -34,12 +34,12 @@
       </td>
     </tr>
     <tr>
-      <td class="description">As of:</td>
-      <td class="content">{{ account.last_update.updated|utc_to_local|format_date_time }}</td>
+      <th>As of:</td>
+      <td>{{ account.last_update.updated|utc_to_local|format_date_time }}</td>
     </tr>
     <tr>
-      <td class="description">Changed:</td>
-      <td class="content">{{ account.last_transaction_date|utc_to_local|format_date_time }}</td>
+      <th>Changed:</td>
+      <td>{{ account.last_transaction_date|utc_to_local|format_date_time }}</td>
     </tr>
   </table>
 </div>

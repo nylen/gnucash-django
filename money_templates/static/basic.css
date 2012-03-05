@@ -20,18 +20,18 @@ a:hover {
   margin-top: 0;
   border-top: none;
 }
-.description {
+
+table.account-block th {
   font-weight: bold;
   padding-right: 4px;
+  text-align: left;
 }
-table.transactions .description-row .description {
-  padding-top: 8px;
-}
+
 table.transactions .date {
   text-align: left;
 }
 table.transactions .description {
-  padding: 0 8px;
+  padding: 8px 8px 0;
 }
 table.transactions td.description {
   font-weight: normal;
@@ -48,10 +48,10 @@ table.transactions td.opposing_account {
 table.transactions .amount {
   text-align: right;
 }
-table.transactions .credit {
+.credit {
   color: #3a3;
 }
-table.transactions .debit {
+.debit {
   color: #900;
 }
 
@@ -116,4 +116,15 @@ table.form-table select {
 
 #clear-filters {
   display: none;
+}
+
+#batch-modify-fields th {
+  font-size: 85%;
+  padding: .25em 0;
+}
+#batch-modify-fields .info {
+  color: #777;
+}
+#batch-modify-fields .info .count {
+  font-weight: bold;
 }

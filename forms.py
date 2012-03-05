@@ -55,8 +55,21 @@ class HiddenFilterForm(FilterForm):
     self.fields['tx_desc'].widget = forms.HiddenInput()
 
 
+class BatchModifyForm(forms.Form):
+  def __init__(self, choices, merchants, *args, **kwargs):
+    super(BatchModifyForm, self).__init__(*args, **kwargs)
+
+    for merchant in merchants:
+      field = forms.ChoiceField(
+        required=False, initial='', choices=choices.modify_account_choices)
+      field.merchant_info = merchant
+      self.fields[merchant['html_name']] = field
+      self.fields[merchant['ref_html_name']] = forms.CharField(
+        initial=merchant['description'], widget=forms.HiddenInput)
+
+
 class AccountChoices():
-  def __init__(self, account):
+  def __init__(self, account, **kwargs):
     cursor = connections['gnucash'].cursor()
     cursor.execute('''
         SELECT a.guid, a.name, a.parent_guid,
@@ -118,7 +131,8 @@ class AccountChoices():
         path_list.reverse()
         a['path'] = ':'.join(path_list)
         if guid != account.guid:
-          modify_account_choices.append((guid, a['path']))
+          if 'exclude' not in kwargs or guid != kwargs['exclude'].guid:
+            modify_account_choices.append((guid, a['path']))
 
     get_account_path = lambda a: accounts_dict[a[0]]['path']
     filter_account_choices.sort(key=get_account_path)
