@@ -21,6 +21,11 @@ a:hover {
   border-top: none;
 }
 
+ul.links {
+  padding: .75em 0 .75em 30px;
+  margin: 0;
+}
+
 table.account-block th {
   font-weight: bold;
   padding-right: 4px;
