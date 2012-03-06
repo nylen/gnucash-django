@@ -162,6 +162,11 @@ $(function() {
       .focusselect();
   });
 
+  $('table.transactions a.search').click(function(e) {
+    e.stopPropagation();
+    return true;
+  });
+
   $('table.transactions td.date').click(function() {
     showFilterForm(true);
 

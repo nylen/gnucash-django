@@ -35,7 +35,12 @@
                   <div class="description">
                     {{ f.field.merchant_info.index }}.
                     <a href="{% url views.account account.webapp_index %}?opposing_accounts={{ imbalance.guid|urlencode }}&tx_desc={{ f.field.merchant_info.tx_desc|urlencode }}">
-                      {{ f.field.merchant_info.description }}</a>:
+                      {{ f.field.merchant_info.description }}</a>
+                    <a title="Search Google" target="_blank" class="search"
+                      href="http://www.google.com/search?q={{ f.field.merchant_info.tx_desc|urlencode }}">
+
+                      <img src="{{ STATIC_URL }}search_icon.png" />
+                    </a>
                   </div>
                   <div class="info">
                     <span class="count">

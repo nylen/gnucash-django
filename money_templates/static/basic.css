@@ -32,6 +32,10 @@ table.account-block th {
   text-align: left;
 }
 
+a.search img {
+  vertical-align: middle;
+}
+
 table.transactions .date {
   text-align: left;
 }

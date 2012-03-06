@@ -58,6 +58,11 @@
           <tr class="description-row">
             <td class="description" colspan="3" data-value="{{ split.transaction.description }}">
               {{ split.transaction.description }}
+              <a title="Search Google" target="_blank" class="search"
+                href="http://www.google.com/search?q={{ split.transaction.description|urlencode }}">
+
+                <img src="{{ STATIC_URL }}search_icon.png" />
+              </a>
             </td>
           </tr>
           <tr>
