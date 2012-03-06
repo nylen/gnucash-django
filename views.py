@@ -64,7 +64,7 @@ def account(request, index):
 
   c = RequestContext(request, {
     'any_filters_applied': splits.any_filters_applied,
-    'opposing_account_filter_applied': splits.opposing_account_filter_applied,
+    'one_opposing_account_filter_applied': splits.one_opposing_account_filter_applied,
     'regex_chars_js': json.dumps(filters.TransactionSplitFilter.REGEX_CHARS),
     'accounts_js': json.dumps(choices.accounts_dict),
     'num_transactions_js': json.dumps(page.paginator.count),

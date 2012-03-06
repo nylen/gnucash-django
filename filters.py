@@ -17,7 +17,7 @@ class TransactionSplitFilter():
     self.splits = account.split_set.select_related(depth=3)
     self.filtered_splits = self.splits
     self.any_filters_applied = False
-    self.opposing_account_filter_applied = False
+    self.one_opposing_account_filter_applied = False
 
   def filter_splits(self, data):
     self.opposing_account_guids = data['opposing_accounts']
@@ -25,7 +25,8 @@ class TransactionSplitFilter():
       if self.account.guid in self.opposing_account_guids:
         raise ValueError('Tried to filter transactions on account = opposing_account')
       self.any_filters_applied = True
-      self.opposing_account_filter_applied = True
+      if len(self.opposing_account_guids) == 1:
+        self.one_opposing_account_filter_applied = True
       self.filtered_splits = \
         self.filtered_splits.filter(transaction__split__account__guid__in=self.opposing_account_guids)
 

@@ -65,7 +65,7 @@
               {{ split.transaction.post_date|format_date }}
             </td>
             <td class="opposing_account">
-              {% if not opposing_account_filter_applied %}
+              {% if not one_opposing_account_filter_applied %}
                 <a href="{% query_string 'opposing_accounts=split.opposing_account.guid' '' %}">
                   {{ split.opposing_account.name }}
                 </a>
