@@ -1,6 +1,21 @@
 $(function() {
   var currentForm = null;
 
+  $.fn.focusselect = function(delay) {
+    var o = this;
+    var fn = function() {
+      o.each(function() {
+        this.focus();
+        this.select();
+      });
+    };
+    if (delay) {
+      window.setTimeout(fn, delay);
+    } else {
+      fn();
+    }
+  };
+
   $('#form-links').show();
   $('#forms .form').hide().removeClass('block block-first');
   $('#form-filters tr.field-opposing_account').show();
@@ -9,12 +24,16 @@ $(function() {
     $(this).hide();
   });
 
+  var delayFilterFocus = true;
+
   function showFilterForm(slow) {
     if (!$('#form-filters').is(':visible')) {
       if (!slow) {
         $('#form-filters').show();
       }
+      delayFilterFocus = false;
       $('#toggle-filters').trigger('click');
+      delayFilterFocus = true;
     }
   }
 
@@ -39,10 +58,7 @@ $(function() {
   });
 
   $('#toggle-filters').click(function() {
-    $('#id_tx_desc').each(function() {
-      this.focus();
-      this.select();
-    });
+    $('#id_tx_desc').focusselect(delayFilterFocus ? 250 : 0);
   });
 
   if (filteringAny) {
@@ -143,10 +159,7 @@ $(function() {
 
     $('#id_tx_desc').val(thisValue == txDesc ? '' : thisValue)
       .css('visibility', 'visible') // Android ICS browser hack
-      .each(function() {
-        this.focus();
-        this.select();
-      });
+      .focusselect();
   });
 
   $('table.transactions td.date').click(function() {
@@ -175,10 +188,7 @@ $(function() {
     // Hack to make the Android ICS browser actually display the new value
     $('#id_min_date, #id_max_date').css('visibility', 'visible');
 
-    $(toFocus).each(function() {
-      this.focus();
-      this.select();
-    });
+    $(toFocus).focusselect();
   });
 
 
