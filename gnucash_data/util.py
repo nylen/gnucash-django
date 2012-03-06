@@ -1,4 +1,3 @@
-from datetime import datetime
 from dateutil import tz
 
 def utc_to_local(utc):

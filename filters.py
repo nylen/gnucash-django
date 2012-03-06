@@ -1,13 +1,12 @@
-from django.db.models import F, Q, Count, Sum
-
-from gnucash_data.models import Account, Split, Lock, Rule, RuleAccount
-
-import settings
-
-from decimal import Decimal
-
 import datetime
 import re
+from decimal import Decimal
+
+from django.db.models import F, Q, Count, Sum
+
+import settings
+from gnucash_data.models import Split, Lock, Rule, RuleAccount
+
 
 class TransactionSplitFilter():
   REGEX_CHARS = '^$()[]?*+|\\'

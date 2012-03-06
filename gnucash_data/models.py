@@ -1,14 +1,14 @@
-from django.db        import connections, models
-from django.db.models import F, Q, Max
-from decimal          import Decimal
-
 import os
 import psutil
 import re
 import socket
+from decimal import Decimal
 
-from memoize import memoized
+from django.db        import connections, models
+from django.db.models import Max
+
 import settings
+from memoize import memoized
 
 
 class Book(models.Model):

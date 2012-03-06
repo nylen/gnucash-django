@@ -1,5 +1,6 @@
 from datetime import datetime
-from gnucash  import Account
+
+from gnucash import Account
 
 def get_account_by_path(acct, path):
   for name in str(path).split(':'):

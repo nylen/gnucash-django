@@ -1,5 +1,6 @@
 from django import template
-from utils  import misc_functions
+
+from utils import misc_functions
 
 register = template.Library()
 register.filter('format_decimal'      , misc_functions.format_decimal)

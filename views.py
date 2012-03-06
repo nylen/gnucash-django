@@ -1,19 +1,14 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator          import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models               import F, Q
 from django.http                    import HttpResponse
 from django.template                import RequestContext, loader
 
-from gnucash_data.models            import Account, Split, Lock, Rule, RuleAccount
-
-from decimal import Decimal
-
-import json
-
 import filters
 import forms
-import re
 import settings
+from gnucash_data.models import Account
 
 
 @login_required

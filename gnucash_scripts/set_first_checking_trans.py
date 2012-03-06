@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-from common import *
-from gnucash import Session, Account, Transaction, Split
 from sys import argv
+
+from gnucash import Session
+
+from common import *
 
 session = Session(argv[1])
 

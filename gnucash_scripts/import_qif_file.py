@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-from common   import *
+import os
+import sys
 from datetime import datetime
 from dateutil import parser as dateparser
 from decimal  import Decimal
-from gnucash  import Session, Account, Transaction, Split, GncNumeric
-from sys      import argv
-from time     import mktime
 
-import os
-import sys
+from gnucash import Session, Transaction, Split, GncNumeric
+
+from common import *
+
 # Add Django project directory (parent directory of current file) to path
 # This shouldn't be so hard...
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
@@ -43,7 +43,7 @@ try:
   USD = book.get_table().lookup('ISO4217', 'USD')
 
   root = book.get_root_account()
-  acct = get_account_by_path(root, argv[1])
+  acct = get_account_by_path(root, sys.argv[1])
   acct_guid = acct.GetGUID().to_string()
   imbalance = get_account_by_path(root, 'Imbalance-USD')
 
@@ -55,7 +55,7 @@ try:
 
   updated = False
 
-  for fn in argv[2:]:
+  for fn in sys.argv[2:]:
     if fn.upper() == 'DEBUG':
       debug = True
       continue

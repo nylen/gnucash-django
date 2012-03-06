@@ -4,8 +4,6 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 admin.autodiscover()
 
-import os
-
 urlpatterns = patterns('',
     (r'^$', 'money.views.index'),
     (r'^accounts/(?P<index>[0-9]+)$', 'money.views.account'),

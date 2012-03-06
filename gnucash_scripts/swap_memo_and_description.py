@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from common import get_account_by_path
-
-from gnucash import Session, Account, Transaction, Split
 from sys import argv
+
+from gnucash import Session
+
+from common import get_account_by_path
 
 session = Session(argv[1])
 root = session.book.get_root_account()
