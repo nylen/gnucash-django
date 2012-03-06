@@ -30,6 +30,13 @@ models.Lock.check_can_obtain()
 # begin GnuCash API session
 session = Session(settings.GNUCASH_CONN_STRING)
 
+debug = False
+
+def debug_print(s):
+  if debug:
+    print s
+
+
 try:
 
   book = session.book
@@ -49,6 +56,10 @@ try:
   updated = False
 
   for fn in argv[2:]:
+    if fn.upper() == 'DEBUG':
+      debug = True
+      continue
+
     balance = None
     try:
       bal = open(fn + '.balance.txt', 'r')
@@ -85,9 +96,9 @@ try:
           # End of transaction - add it
           this_id = (txinfo['date'], txinfo['description'], txinfo['cents'])
           if this_id in ids:
-            print 'Not adding duplicate transaction %s' % str(this_id)
+            debug_print('Not adding duplicate transaction %s' % str(this_id))
           else:
-            print 'Adding transaction %s' % str(this_id)
+            debug_print('Adding transaction %s' % str(this_id))
             gnc_amount = GncNumeric(txinfo['cents'], 100)
 
             # From example script 'test_imbalance_transaction.py'
@@ -111,14 +122,17 @@ try:
             split1.SetAmount(gnc_amount)
             split1.SetReconcile('c')
 
-            opposing_account_guid = None
+            opposing_acct = None
+            opposing_acct_path = None
+
             for rule in rules:
               if rule.is_match(txinfo['description'], Decimal(txinfo['cents']) / 100):
-                opposing_account_guid = rule.opposing_account_guid
+                opposing_acct = get_account_by_guid(rule.opposing_account_guid)
+                opposing_acct_path = get_account_path(opposing_acct)
+                debug_print('Transaction %s matches rule %i (%s)' % (str(this_id), rule.id, opposing_acct_path))
 
-            if opposing_account_guid != None:
-              opposing_acct = get_account_by_guid(root, opposing_account_guid)
-              print 'Categorizing transaction %s as %s' % (str(this_id), get_account_path(opposing_acct))
+            if opposing_acct != None:
+              debug_print('Categorizing transaction %s as %s' % (str(this_id), opposing_acct_path))
               split2 = Split(book)
               split2.SetParent(trans)
               split2.SetAccount(opposing_acct)
