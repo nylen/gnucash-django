@@ -19,6 +19,8 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {
+    # This is the gnucash_django database connection.  It holds database tables that are NOT used by GnuCash.
+    # (They can't be stored in the same database because GnuCash will delete unrecognized tables.)
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'gnucash_django',             # Or path to database file if using sqlite3.
@@ -26,8 +28,11 @@ DATABASES = {
         'PASSWORD': (***FILL THIS IN***),     # Not used with sqlite3.
         'HOST': '',                           # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                           # Set to empty string for default. Not used with sqlite3.
-        },
-        'gnucash': {
+    },
+
+    # This is the GnuCash database connection.  It holds the database tables that are used by GnuCash.  The
+    # application will read the transactions and other data in these tables, and perform limited modifications.
+    'gnucash': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'gnucash',                    # Or path to database file if using sqlite3.
         'USER': (***FILL THIS IN***),         # Not used with sqlite3.
