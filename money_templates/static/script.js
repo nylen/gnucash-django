@@ -205,7 +205,7 @@ $(function() {
   if (windowWidth >= 800) {
     var maxWidths = {
       'input': 450,
-      'select': 200
+      'select': 250
     };
     $('table.form-table').each(function() {
       var dims = $(this).hiddenDimensions();
