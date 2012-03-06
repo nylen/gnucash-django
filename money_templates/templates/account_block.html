@@ -22,21 +22,25 @@
         {% if account.balance == account.last_update.balance %}
           <span class="balance-match" title="Balance matches">&#10004;</span>
         {% else %}
-          {% if account.last_update.balance == None %}
-            <span class="balance-unknown" title="Balance unverified">?</span>
-          {% else %}
-            <span class="balance-mismatch"
-              title="Balance does not match (source: {{ account.last_update.balance|format_dollar_amount }})">
-              &#10006;
-            </span>
+          {% if account.has_updates %}
+            {% if account.last_update.balance == None %}
+              <span class="balance-unknown" title="Balance unverified">?</span>
+            {% else %}
+              <span class="balance-mismatch"
+                title="Balance does not match (source: {{ account.last_update.balance|format_dollar_amount }})">
+                &#10006;
+              </span>
+            {% endif %}
           {% endif %}
         {% endif %}
       </td>
     </tr>
-    <tr>
-      <th>As of:</td>
-      <td>{{ account.last_update.updated|utc_to_local|format_date_time }}</td>
-    </tr>
+    {% if account.has_updates %}
+      <tr>
+        <th>As of:</td>
+        <td>{{ account.last_update.updated|utc_to_local|format_date_time }}</td>
+      </tr>
+    {% endif %}
     <tr>
       <th>Changed:</td>
       <td>{{ account.last_transaction_date|utc_to_local|format_date_time }}</td>

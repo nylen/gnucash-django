@@ -68,6 +68,9 @@ class Account(models.Model):
     utc = s.aggregate(max_date=Max('transaction__enter_date'))['max_date']
     return utc
 
+  def has_updates(self):
+    return (Update.objects.filter(account_guid=self.guid).count() > 0)
+
   def last_update(self):
     updates = Update.objects.filter(account_guid=self.guid)
     try:
