@@ -75,7 +75,9 @@ class TransactionSplitFilter():
     return False
 
   def get_merchants_info(self, opposing_account):
-    splits = self.account.split_set.filter(transaction__split__account=opposing_account).select_related(depth=3)
+    splits = self.account.split_set \
+      .filter(transaction__split__account=opposing_account) \
+      .select_related(depth=3)
     groups = splits.values('transaction__description', 'value_denom') \
       .annotate(count=Count('guid'), value_num=Sum('value_num')) \
       .order_by('-count', 'value_denom', 'value_num', 'transaction__description')
@@ -84,7 +86,9 @@ class TransactionSplitFilter():
     merchant = {'description': None}
 
     i = 0
+    any_transactions = False
     for g in groups:
+      any_transactions = True
       if merchant['description'] != g['transaction__description']:
         if merchant['description'] != None:
           i += 1
@@ -105,7 +109,9 @@ class TransactionSplitFilter():
         }
       merchant['count'] += g['count']
       merchant['amount'] += Decimal(g['value_num']) / Decimal(g['value_denom'])
-    merchants.append(merchant)
+
+    if any_transactions:
+      merchants.append(merchant)
 
     return merchants
 

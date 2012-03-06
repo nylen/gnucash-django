@@ -22,36 +22,40 @@
         <a href="{% url views.account account.webapp_index %}">Back to account</a>
       </div>
       <div class="block">
-        <table id="batch-modify-fields" class="form-table">
-          {% for f in batch_modify_form.hidden_fields %}
-            {{ f }}
-          {% endfor %}
-          {% for f in batch_modify_form.visible_fields %}
-            <tr>
-              <th>
-                <div class="description">
-                  {{ f.field.merchant_info.index }}.
-                  <a href="{% url views.account account.webapp_index %}?opposing_accounts={{ imbalance.guid|urlencode }}&tx_desc={{ f.field.merchant_info.tx_desc|urlencode }}">
-                    {{ f.field.merchant_info.description }}</a>:
-                </div>
-                <div class="info">
-                  <span class="count">
-                    {{ f.field.merchant_info.count }}
-                  </span>
-                  transaction{% if f.field.merchant_info.count != 1 %}s{% endif %}
-                  |
-                  <span class="{% if f.field.merchant_info.amount < 0 %}debit{% else %}credit{% endif %}">
-                    {{ f.field.merchant_info.amount|format_dollar_amount }}
-                  </span>
-                </div>
-              </th>
-              <td>
-                {{ f.errors }}
-                {{ f }}
-              </td>
-            </tr>
-          {% endfor %}
-        </table>
+        {% if no_merchants %}
+          No uncategorized transactions.
+        {% else %}
+          <table id="batch-modify-fields" class="form-table">
+            {% for f in batch_modify_form.hidden_fields %}
+              {{ f }}
+            {% endfor %}
+            {% for f in batch_modify_form.visible_fields %}
+              <tr>
+                <th>
+                  <div class="description">
+                    {{ f.field.merchant_info.index }}.
+                    <a href="{% url views.account account.webapp_index %}?opposing_accounts={{ imbalance.guid|urlencode }}&tx_desc={{ f.field.merchant_info.tx_desc|urlencode }}">
+                      {{ f.field.merchant_info.description }}</a>:
+                  </div>
+                  <div class="info">
+                    <span class="count">
+                      {{ f.field.merchant_info.count }}
+                    </span>
+                    transaction{% if f.field.merchant_info.count != 1 %}s{% endif %}
+                    |
+                    <span class="{% if f.field.merchant_info.amount < 0 %}debit{% else %}credit{% endif %}">
+                      {{ f.field.merchant_info.amount|format_dollar_amount }}
+                    </span>
+                  </div>
+                </th>
+                <td>
+                  {{ f.errors }}
+                  {{ f }}
+                </td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endif %}
         {% csrf_token %}
       </div>
       <div class="block">

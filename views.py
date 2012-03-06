@@ -105,7 +105,7 @@ def modify(request, index):
       splits.filter_splits(modify_form.cleaned_data)
 
       save_rule = modify_form.cleaned_data['save_rule']
-      if not splits.tx_desc:
+      if save_rule and not splits.tx_desc:
         errors = 'Cannot save rule with no description filter.'
         save_rule = False
 
@@ -147,11 +147,13 @@ def batch_categorize(request, index):
   choices = forms.AccountChoices(account, exclude=imbalance)
 
   merchants = splits.get_merchants_info(imbalance)
+  no_merchants = (len(merchants) == 0)
   batch_modify_form = forms.BatchModifyForm(choices, merchants)
 
   c = RequestContext(request, {
     'account': account,
     'batch_modify_form': batch_modify_form,
+    'no_merchants': no_merchants,
     'imbalance': imbalance,
   })
   return HttpResponse(template.render(c))
