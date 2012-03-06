@@ -1,5 +1,4 @@
 import os
-import psutil
 import re
 import socket
 from decimal import Decimal
@@ -170,8 +169,9 @@ class Lock(models.Model):
     if not Lock.can_obtain():
       lock = Lock.objects.all()[0]
       try:
+        import psutil
         name = psutil.Process(int(lock.process_id)).name
-      except psutil.NoSuchProcess:
+      except:
         name = 'unknown process'
       raise IOError('Cannot lock gnucash DB tables - locked by %s:%i (%s)'
         % (lock.hostname, lock.process_id, name))
