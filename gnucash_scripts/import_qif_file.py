@@ -111,17 +111,20 @@ try:
             split1.SetAmount(gnc_amount)
             split1.SetReconcile('c')
 
+            opposing_account_guid = None
             for rule in rules:
               if rule.is_match(txinfo['description'], Decimal(txinfo['cents']) / 100):
-                opposing_acct = get_account_by_guid(root, rule.opposing_account_guid)
-                print 'Categorizing transaction %s as %s' % (str(this_id), get_account_path(opposing_acct))
-                split2 = Split(book)
-                split2.SetParent(trans)
-                split2.SetAccount(opposing_acct)
-                split2.SetValue(gnc_amount.neg())
-                split2.SetAmount(gnc_amount.neg())
-                split2.SetReconcile('c')
-                break
+                opposing_account_guid = rule.opposing_account_guid
+
+            if opposing_account_guid != None:
+              opposing_acct = get_account_by_guid(root, opposing_account_guid)
+              print 'Categorizing transaction %s as %s' % (str(this_id), get_account_path(opposing_acct))
+              split2 = Split(book)
+              split2.SetParent(trans)
+              split2.SetAccount(opposing_acct)
+              split2.SetValue(gnc_amount.neg())
+              split2.SetAmount(gnc_amount.neg())
+              split2.SetReconcile('c')
 
             trans.CommitEdit()
             ids.add(this_id)

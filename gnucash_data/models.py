@@ -227,6 +227,7 @@ class Rule(models.Model):
 
   class Meta:
     db_table = 'rules'
+    ordering = ['id']
 
 
 class RuleAccount(models.Model):
