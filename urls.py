@@ -5,11 +5,11 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    (r'^$', 'money.views.index'),
-    (r'^accounts/(?P<index>[0-9]+)$', 'money.views.account'),
-    (r'^accounts/(?P<index>[0-9]+)/modify$', 'money.views.modify'),
-    (r'^accounts/(?P<index>[0-9]+)/categorize$', 'money.views.batch_categorize'),
-    (r'^accounts/(?P<index>[0-9]+)/categorize/apply$', 'money.views.apply_categorize'),
+    (r'^$', 'money_views.views.index'),
+    (r'^accounts/(?P<index>[0-9]+)$', 'money_views.views.account'),
+    (r'^accounts/(?P<index>[0-9]+)/modify$', 'money_views.views.modify'),
+    (r'^accounts/(?P<index>[0-9]+)/categorize$', 'money_views.views.batch_categorize'),
+    (r'^accounts/(?P<index>[0-9]+)/categorize/apply$', 'money_views.views.apply_categorize'),
 
     (r'^static/(?P<path>.*)$', 'django.contrib.staticfiles.views.serve'),
 

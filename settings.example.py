@@ -106,7 +106,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'money.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -131,6 +131,7 @@ INSTALLED_APPS = (
     'gnucash_scripts',
     'utils',
     'money_templates',
+    'money_views',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (

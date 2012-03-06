@@ -5,7 +5,7 @@
       <th>Account:</td>
       <td>
         {% if show_account_links %}
-          <a href="{% url views.account account.webapp_index %}">{{ account.name }}</a>
+          <a href="{% url money_views.views.account account.webapp_index %}">{{ account.name }}</a>
         {% else %}
           {{ account.name }}
         {% endif %}
