@@ -188,7 +188,11 @@ class Lock(models.Model):
 
   @staticmethod
   def _fake_hostname():
-    return '%s@%s' % (psutil.Process(os.getpid()).name, socket.gethostname())
+    try:
+      import psutil
+      return '%s@%s' % (psutil.Process(os.getpid()).name, socket.gethostname())
+    except ImportError:
+      return socket.gethostname()
 
   @staticmethod
   def release():
