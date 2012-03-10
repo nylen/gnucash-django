@@ -127,7 +127,7 @@ try:
 
             for rule in rules:
               if rule.is_match(txinfo['description'], Decimal(txinfo['cents']) / 100):
-                opposing_acct = get_account_by_guid(rule.opposing_account_guid)
+                opposing_acct = get_account_by_guid(root, rule.opposing_account_guid)
                 opposing_acct_path = get_account_path(opposing_acct)
                 debug_print('Transaction %s matches rule %i (%s)' % (str(this_id), rule.id, opposing_acct_path))
 
