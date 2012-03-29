@@ -18,7 +18,7 @@
     <tr>
       <th>Balance:</td>
       <td>
-        {{ account.balance|format_dollar_amount }}
+        {{ account.balance|format_dollar_amount_neg }}
         {% if account.balance == account.last_update.balance %}
           <span class="balance-match" title="Balance matches">&#10004;</span>
         {% else %}

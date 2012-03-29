@@ -13,8 +13,12 @@ def format_decimal(value):
   cents = ('%.2f' % (value - int(value)))[1:]
   return '%s%s' % (format_thousands(int(value)), cents)
 
-def format_dollar_amount(value):
-  return '$' + format_decimal(value)
+def format_dollar_amount(value, allow_negative=False):
+  if allow_negative and value < 0:
+    sign = '-'
+  else:
+    sign = ''
+  return sign + '$' + format_decimal(value)
 
 def format_date(date):
   return date.strftime('%m/%d/%y')
