@@ -105,6 +105,16 @@ class Update(models.Model):
     db_table = 'account_updates'
 
 
+class ImportedTransaction(models.Model):
+  account_guid = models.CharField(max_length=32)
+  tx_guid = models.CharField(max_length=32)
+  source_tx_id = models.CharField(max_length=2048)
+  update = models.ForeignKey(Update)
+
+  class Meta:
+    db_table = 'imported_transactions'
+
+
 class Transaction(models.Model):
   from_gnucash_api = True
 

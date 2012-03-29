@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import re
 import os
 import sys
 from datetime import datetime
@@ -30,12 +31,42 @@ models.Lock.check_can_obtain()
 # begin GnuCash API session
 session = Session(settings.GNUCASH_CONN_STRING)
 
+
 debug = False
 
 def debug_print(s):
   if debug:
     print s
 
+
+def get_id_string(s):
+  if re.search('id:|ref:|t(x|rans(action)?) *id', s, re.I):
+    return s
+  else:
+    return None
+
+def make_transaction_id(t):
+  memo = txinfo.get('memo', '')
+  id = get_id_string(memo)
+  if id:
+    return id
+  id = get_id_string(t['description'])
+  if id:
+    return id
+  return '%s|%s|%s|%s' % (
+    t['date'].strftime('%Y-%m-%d'),
+    t['description'],
+    memo,
+    t['amount'])
+
+def get_transaction_string(t):
+  memo = txinfo.get('memo', '')
+  if memo:
+    memo = ' / ' + memo
+  return "'%s%s' on %s for %s" \
+    % (t['description'], memo,
+      t['date'].strftime('%Y-%m-%d'),
+      t['amount'])
 
 try:
 
@@ -49,9 +80,6 @@ try:
 
   rules = [ra.rule for ra in models.RuleAccount.objects
     .filter(account_guid=acct_guid).select_related().distinct('rule__id')]
-
-  # TODO: Do we need to use list() here? (time vs memory tradeoff)
-  ids = set(get_transaction_id(s.parent, acct) for s in acct.GetSplitList())
 
   updated = False
 
@@ -70,6 +98,8 @@ try:
     except:
       pass
 
+    imported_transactions = []
+
     qif = open(fn, 'r')
     txinfo = {}
     for line in qif:
@@ -85,21 +115,23 @@ try:
           txinfo['description'] = value
 
         elif marker == 'T':
-          # Key tests: 1.1, -1.1, 9.92, -9.92
-          txinfo['cents'] = int(round(float(value.replace(',', '')) * 100))
+          txinfo['amount'] = Decimal(value.replace(',', ''))
 
         elif marker == 'M':
           txinfo['memo'] = value
 
         elif marker == '^' and txinfo <> {}:
           updated = True
-          # End of transaction - add it
-          this_id = (txinfo['date'], txinfo['description'], txinfo['cents'])
-          if this_id in ids:
-            debug_print('Not adding duplicate transaction %s' % str(this_id))
+
+          # End of transaction - add it if it's not a duplicate
+          this_id = make_transaction_id(txinfo)
+
+          if models.ImportedTransaction.objects.filter(source_tx_id=this_id).count():
+            debug_print('Not adding duplicate transaction %s'
+              % get_transaction_string(txinfo))
           else:
-            debug_print('Adding transaction %s' % str(this_id))
-            gnc_amount = GncNumeric(txinfo['cents'], 100)
+            debug_print('Adding transaction %s' % get_transaction_string(txinfo))
+            gnc_amount = decimal_to_gnc_numeric(txinfo['amount'])
 
             # From example script 'test_imbalance_transaction.py'
             trans = Transaction(book)
@@ -107,9 +139,9 @@ try:
             trans.SetCurrency(USD)
             trans.SetDescription(txinfo['description'])
             trans.SetDate(
-                txinfo['date'].day,
-                txinfo['date'].month,
-                txinfo['date'].year)
+              txinfo['date'].day,
+              txinfo['date'].month,
+              txinfo['date'].year)
 
             split1 = Split(book)
             split1.SetParent(trans)
@@ -126,13 +158,15 @@ try:
             opposing_acct_path = None
 
             for rule in rules:
-              if rule.is_match(txinfo['description'], Decimal(txinfo['cents']) / 100):
+              if rule.is_match(txinfo['description'], txinfo['amount']):
                 opposing_acct = get_account_by_guid(root, rule.opposing_account_guid)
                 opposing_acct_path = get_account_path(opposing_acct)
-                debug_print('Transaction %s matches rule %i (%s)' % (str(this_id), rule.id, opposing_acct_path))
+                debug_print('Transaction %s matches rule %i (%s)'
+                  % (get_transaction_string(txinfo), rule.id, opposing_acct_path))
 
             if opposing_acct != None:
-              debug_print('Categorizing transaction %s as %s' % (str(this_id), opposing_acct_path))
+              debug_print('Categorizing transaction %s as %s'
+                % (get_transaction_string(txinfo), opposing_acct_path))
               split2 = Split(book)
               split2.SetParent(trans)
               split2.SetAccount(opposing_acct)
@@ -141,8 +175,13 @@ try:
               split2.SetReconcile('c')
 
             trans.CommitEdit()
-            ids.add(this_id)
             txinfo = {}
+
+            tx = models.ImportedTransaction()
+            tx.account_guid = acct_guid
+            tx.tx_guid = trans.GetGUID().to_string()
+            tx.source_tx_id = this_id
+            imported_transactions.append(tx)
 
     qif.close()
 
@@ -151,7 +190,11 @@ try:
     u.account_guid = acct_guid
     u.updated = datetime.utcnow()
     u.balance = balance
-    u.save(using='default')
+    u.save()
+
+    for tx in imported_transactions:
+      tx.update = u
+      tx.save()
 
   session.save()
 
