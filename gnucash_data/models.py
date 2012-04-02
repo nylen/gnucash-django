@@ -18,6 +18,9 @@ class Book(models.Model):
   class Meta:
     db_table = 'books'
 
+  def __unicode__(self):
+    return 'Root account: %s' % self.root_account
+
 
 class Account(models.Model):
   from_gnucash_api = True
@@ -29,6 +32,9 @@ class Account(models.Model):
 
   class Meta:
     db_table = 'accounts'
+
+  def __unicode__(self):
+    return self.path()
 
   @staticmethod
   def from_path(path):
@@ -42,9 +48,6 @@ class Account(models.Model):
   @staticmethod
   def get_root():
     return Book.objects.get().root_account
-
-  def __unicode__(self):
-    return self.name
 
   def balance(self):
     #return sum(s.amount() for s in self.split_set.all()) # SLOW
@@ -80,6 +83,8 @@ class Account(models.Model):
     return self.guid == Account.get_root().guid
 
   def path(self):
+    if self.parent is None:
+      return self.name
     parts = []
     a = self
     while not a.is_root():
@@ -103,6 +108,12 @@ class Update(models.Model):
   class Meta:
     db_table = 'account_updates'
 
+  def __unicode__(self):
+    return "Account '%s' updated at %s (balance: %s)" % (
+      Account.objects.get(guid=self.account_guid),
+      self.updated,
+      '?' if self.balance is None else '%0.2f' % self.balance)
+
 
 class ImportedTransaction(models.Model):
   account_guid = models.CharField(max_length=32)
@@ -112,6 +123,12 @@ class ImportedTransaction(models.Model):
 
   class Meta:
     db_table = 'imported_transactions'
+
+  def __unicode__(self):
+    return "Account '%s', transaction '%s', source ID '%s'" % (
+      Account.objects.get(guid=self.account_guid),
+      Transaction.objects.get(guid=self.tx_guid),
+      self.source_tx_id);
 
 
 class Transaction(models.Model):
@@ -126,7 +143,7 @@ class Transaction(models.Model):
     db_table = 'transactions'
 
   def __unicode__(self):
-    return '%s | %s' % (str(self.post_date), self.description)
+    return '%s | %s' % (self.post_date, self.description)
 
 
 class Split(models.Model):
@@ -142,6 +159,12 @@ class Split(models.Model):
   class Meta:
     db_table = 'splits'
 
+  def __unicode__(self):
+    return '%s | %s | %0.2f' % (
+      self.account,
+      self.transaction,
+      self.amount())
+
   def amount(self):
     return Decimal(self.value_num) / Decimal(self.value_denom)
 
@@ -154,11 +177,6 @@ class Split(models.Model):
   def opposing_account(self):
     return self.opposing_split_set()[0].account
 
-  def __unicode__(self):
-    return '%s | %s | %0.2f' % (
-      unicode(self.account),
-      unicode(self.transaction),
-      self.amount())
 
 class Lock(models.Model):
   from_gnucash_api = True
@@ -169,6 +187,14 @@ class Lock(models.Model):
   class Meta:
     db_table = 'gnclock'
 
+  def __unicode__(self):
+    try:
+      import psutil
+      name = psutil.Process(int(self.process_id)).name
+    except:
+      name = 'unknown process'
+    return '%s:%i (%s)' % (self.hostname, self.process_id, name)
+
   @staticmethod
   def can_obtain():
     return (Lock.objects.count() == 0)
@@ -177,13 +203,7 @@ class Lock(models.Model):
   def check_can_obtain():
     if not Lock.can_obtain():
       lock = Lock.objects.all()[0]
-      try:
-        import psutil
-        name = psutil.Process(int(lock.process_id)).name
-      except:
-        name = 'unknown process'
-      raise IOError('Cannot lock gnucash DB tables - locked by %s:%i (%s)'
-        % (lock.hostname, lock.process_id, name))
+      raise IOError('Cannot lock gnucash DB tables - locked by %s' % lock)
 
   @staticmethod
   def obtain():
@@ -221,6 +241,16 @@ class Rule(models.Model):
   min_amount = models.DecimalField(max_digits=30, decimal_places=5, null=True)
   max_amount = models.DecimalField(max_digits=30, decimal_places=5, null=True)
 
+  class Meta:
+    db_table = 'rules'
+    ordering = ['id']
+
+  def __unicode__(self):
+    return "Match '%s'%s -> account '%s'" % (
+      self.match_tx_desc,
+      ' (regex)' if self.is_regex else '',
+      Account.objects.get(guid=self.opposing_account_guid))
+
   def is_match(self, tx_desc, amount):
     if self.is_regex:
       if not re.search(self.match_tx_desc, tx_desc, re.I):
@@ -241,10 +271,6 @@ class Rule(models.Model):
 
     return True
 
-  class Meta:
-    db_table = 'rules'
-    ordering = ['id']
-
 
 class RuleAccount(models.Model):
   rule = models.ForeignKey('Rule')
@@ -252,3 +278,8 @@ class RuleAccount(models.Model):
 
   class Meta:
     db_table = 'rule_accounts'
+
+  def __unicode__(self):
+    return "Rule '%s' for account '%s'" % (
+      self.rule,
+      Account.objects.get(guid=self.account_guid))
