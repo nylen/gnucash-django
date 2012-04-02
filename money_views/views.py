@@ -11,6 +11,14 @@ import settings
 from gnucash_data.models import Account
 
 
+def get_account(key):
+  try:
+    path = settings.ACCOUNTS_LIST[int(key)]
+    return Account.from_path(path)
+  except ValueError:
+    return Account.objects.get(guid=key)
+
+
 @login_required
 def index(request):
   template = loader.get_template('index.html')
@@ -24,11 +32,10 @@ def index(request):
 
 
 @login_required
-def account(request, index):
+def account(request, key):
   template = loader.get_template('account_details.html')
 
-  path = settings.ACCOUNTS_LIST[int(index)]
-  account = Account.from_path(path)
+  account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
 
   choices = forms.AccountChoices(account)
@@ -72,11 +79,10 @@ def account(request, index):
 
 
 @login_required
-def modify(request, index):
+def modify(request, key):
   template = loader.get_template('modify.html')
 
-  path = settings.ACCOUNTS_LIST[int(index)]
-  account = Account.from_path(path)
+  account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
 
   errors = False
@@ -131,11 +137,10 @@ def modify(request, index):
 
 
 @login_required
-def batch_categorize(request, index):
+def batch_categorize(request, key):
   template = loader.get_template('batch_categorize.html')
 
-  path = settings.ACCOUNTS_LIST[int(index)]
-  account = Account.from_path(path)
+  account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
 
   imbalance = Account.from_path('Imbalance-USD')
@@ -155,16 +160,15 @@ def batch_categorize(request, index):
 
 
 @login_required
-def apply_categorize(request, index):
+def apply_categorize(request, key):
   template = loader.get_template('apply_categorize.html')
 
-  path = settings.ACCOUNTS_LIST[int(index)]
-  account = Account.from_path(path)
-  imbalance = Account.from_path('Imbalance-USD')
+  account = get_account(key)
+  splits = filters.TransactionSplitFilter(account)
 
+  imbalance = Account.from_path('Imbalance-USD')
   choices = forms.AccountChoices(account, exclude=imbalance)
 
-  splits = filters.TransactionSplitFilter(account)
   merchants = splits.get_merchants_info(imbalance)
   batch_modify_form = forms.BatchModifyForm(choices, merchants, request.POST)
 

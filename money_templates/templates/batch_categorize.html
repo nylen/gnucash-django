@@ -16,10 +16,10 @@
         modified.
       </div>
     </div>
-    <form action="{% url money_views.views.apply_categorize account.webapp_index %}" method="post">
+    <form action="{% url money_views.views.apply_categorize account.webapp_key %}" method="post">
       <div class="block">
         <input type="submit" value="Categorize transactions" />
-        <a href="{% url money_views.views.account account.webapp_index %}">Back to account</a>
+        <a href="{% url money_views.views.account account.webapp_key %}">Back to account</a>
       </div>
       <div class="block">
         {% if no_merchants %}
@@ -34,7 +34,7 @@
                 <th>
                   <div class="description">
                     {{ f.field.merchant_info.index }}.
-                    <a href="{% url money_views.views.account account.webapp_index %}?opposing_accounts={{ imbalance.guid|urlencode }}&tx_desc={{ f.field.merchant_info.tx_desc|urlencode }}">
+                    <a href="{% url money_views.views.account account.webapp_key %}?opposing_accounts={{ imbalance.guid|urlencode }}&tx_desc={{ f.field.merchant_info.tx_desc|urlencode }}">
                       {{ f.field.merchant_info.description }}</a>
                     <a title="Search Google" target="_blank" class="search"
                       href="http://www.google.com/search?q={{ f.field.merchant_info.tx_desc|urlencode }}">
@@ -65,7 +65,7 @@
       </div>
       <div class="block">
         <input type="submit" value="Categorize transactions" />
-        <a href="{% url money_views.views.account account.webapp_index %}">Back to account</a>
+        <a href="{% url money_views.views.account account.webapp_key %}">Back to account</a>
       </div>
     </form>
   </body>

@@ -1,11 +1,11 @@
 {% load template_extras %}
-<div class="block{% if account.webapp_index == 0 %} block-first{% endif %}">
+<div class="block{% if account.webapp_key == 0 %} block-first{% endif %}">
   <table class="account-block">
     <tr>
       <th>Account:</td>
       <td>
         {% if show_account_links %}
-          <a href="{% url money_views.views.account account.webapp_index %}">{{ account.name }}</a>
+          <a href="{% url money_views.views.account account.webapp_key %}">{{ account.name }}</a>
         {% else %}
           {{ account.name }}
         {% endif %}

@@ -92,8 +92,11 @@ class Account(models.Model):
     return ':'.join(parts)
 
   @memoized
-  def webapp_index(self):
-    return settings.ACCOUNTS_LIST.index(self.path())
+  def webapp_key(self):
+    try:
+      return settings.ACCOUNTS_LIST.index(self.path())
+    except ValueError:
+      return self.guid
 
 
 class Update(models.Model):

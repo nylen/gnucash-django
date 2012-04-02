@@ -6,10 +6,10 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     (r'^$', 'money_views.views.index'),
-    (r'^accounts/(?P<index>[0-9]+)$', 'money_views.views.account'),
-    (r'^accounts/(?P<index>[0-9]+)/modify$', 'money_views.views.modify'),
-    (r'^accounts/(?P<index>[0-9]+)/categorize$', 'money_views.views.batch_categorize'),
-    (r'^accounts/(?P<index>[0-9]+)/categorize/apply$', 'money_views.views.apply_categorize'),
+    (r'^accounts/(?P<key>[0-9a-f]+)$', 'money_views.views.account'),
+    (r'^accounts/(?P<key>[0-9a-f]+)/modify$', 'money_views.views.modify'),
+    (r'^accounts/(?P<key>[0-9a-f]+)/categorize$', 'money_views.views.batch_categorize'),
+    (r'^accounts/(?P<key>[0-9a-f]+)/categorize/apply$', 'money_views.views.apply_categorize'),
 
     (r'^static/(?P<path>.*)$', 'django.contrib.staticfiles.views.serve'),
 
