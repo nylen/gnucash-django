@@ -55,10 +55,10 @@
           <th class="amount">Amount</th>
         </tr>
         {% for split in page.object_list %}
-          <tr class="description-row">
+          <tr class="description-row" data-split="{{ split.guid }}">
             <td class="description" colspan="3" data-value="{{ split.transaction.description }}">
               {{ split.transaction.description }}
-              <a title="Search Google" target="_blank" class="search"
+              <a title="Search Google" target="_blank" class="search no-ul"
                 href="http://www.google.com/search?q={{ split.transaction.description|urlencode }}">
 
                 <img src="{{ STATIC_URL }}search_icon.png" />
@@ -67,10 +67,12 @@
                 <div class="memo" data-value="{{ split.memo }}">
                   {{ split.memo }}
                 </div>
+              {% else %}
+                <a class="add-memo no-ul" title="Add memo" href="#">...</a>
               {% endif %}
             </td>
           </tr>
-          <tr>
+          <tr data-split="{{ split.guid }}">
             <td class="date" data-value="{{ split.transaction.post_date|format_date }}">
               {{ split.transaction.post_date|format_date }}
             </td>
@@ -82,6 +84,11 @@
               {% else %}
                 {{ split.opposing_account.name }}
               {% endif %}
+              <a class="change-opposing-account no-ul" data-value="{{ split.opposing_account.guid }}"
+                title="Change opposing account" href="#">
+
+                &#9660;
+              </a>
             </td>
             <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}">
               {{ split.amount|format_decimal }}

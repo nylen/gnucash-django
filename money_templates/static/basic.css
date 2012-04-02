@@ -9,6 +9,9 @@ a {
 a:hover {
   text-decoration: underline;
 }
+a.no-ul:hover {
+  text-decoration: none;
+}
 
 .block {
   padding-top: 8px;
@@ -62,6 +65,20 @@ table.transactions .amount {
 }
 .debit {
   color: #900;
+}
+
+table.transactions .add-memo {
+  margin-left: 4px;
+  color: #999;
+  display: none;
+}
+table.transactions .change-opposing-account {
+  margin-left: 4px;
+  font-size: 85%;
+  padding: 1px;
+  border: 1px solid #bbb;
+  color: #bbb;
+  display: none;
 }
 
 .balance-match {
