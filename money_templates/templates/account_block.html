@@ -2,7 +2,7 @@
 <div class="block{% if account.webapp_key == 0 %} block-first{% endif %}">
   <table class="account-block">
     <tr>
-      <th>Account:</td>
+      <th>Account:</th>
       <td>
         {% if show_account_links %}
           <a href="{% url money_views.views.account account.webapp_key %}">{{ account.name }}</a>
@@ -12,11 +12,11 @@
       </td>
     </tr>
     <tr>
-      <th>Type:</td>
+      <th>Type:</th>
       <td>{{ account.type.title }}</td>
     </tr>
     <tr>
-      <th>Balance:</td>
+      <th>Balance:</th>
       <td>
         {{ account.balance|format_dollar_amount_neg }}
         {% if account.balance == account.last_update.balance %}
@@ -37,12 +37,12 @@
     </tr>
     {% if account.has_updates %}
       <tr>
-        <th>As of:</td>
+        <th>As of:</th>
         <td>{{ account.last_update.updated|utc_to_local|format_date_time }}</td>
       </tr>
     {% endif %}
     <tr>
-      <th>Changed:</td>
+      <th>Changed:</th>
       <td>
         {% if account.last_transaction_date %}
           {{ account.last_transaction_date|utc_to_local|format_date_time }}
