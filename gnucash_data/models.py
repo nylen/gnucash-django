@@ -7,7 +7,6 @@ from django.db        import connections, models
 from django.db.models import Max
 
 import settings
-from memoize import memoized
 
 
 class Book(models.Model):
@@ -32,7 +31,6 @@ class Account(models.Model):
     db_table = 'accounts'
 
   @staticmethod
-  @memoized
   def from_path(path):
     parts = path.split(':')
     a = Account.get_root()
@@ -81,7 +79,6 @@ class Account(models.Model):
   def is_root(self):
     return self.guid == Account.get_root().guid
 
-  @memoized
   def path(self):
     parts = []
     a = self
@@ -91,7 +88,6 @@ class Account(models.Model):
     parts.reverse()
     return ':'.join(parts)
 
-  @memoized
   def webapp_key(self):
     try:
       return settings.ACCOUNTS_LIST.index(self.path())
