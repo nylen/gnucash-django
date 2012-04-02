@@ -63,6 +63,11 @@
 
                 <img src="{{ STATIC_URL }}search_icon.png" />
               </a>
+              {% if split.memo %}
+                <div class="memo" data-value="{{ split.memo }}">
+                  {{ split.memo }}
+                </div>
+              {% endif %}
             </td>
           </tr>
           <tr>
