@@ -127,7 +127,7 @@ class Transaction(models.Model):
     db_table = 'transactions'
 
   def __unicode__(self):
-    return '%s - %s' % (str(self.post_date), self.description)
+    return '%s | %s' % (str(self.post_date), self.description)
 
 
 class Split(models.Model):
@@ -156,7 +156,7 @@ class Split(models.Model):
     return self.opposing_split_set()[0].account
 
   def __unicode__(self):
-    return '%s - %s - %0.2f' % (
+    return '%s | %s | %0.2f' % (
       unicode(self.account),
       unicode(self.transaction),
       self.amount())
