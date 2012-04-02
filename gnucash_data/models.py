@@ -25,7 +25,7 @@ class Account(models.Model):
 
   guid = models.CharField(max_length=32, primary_key=True)
   name = models.CharField(max_length=2048)
-  parent = models.ForeignKey('self', db_column='parent_guid')
+  parent = models.ForeignKey('self', db_column='parent_guid', null=True)
   type = models.CharField(max_length=2048, db_column='account_type')
 
   class Meta:
