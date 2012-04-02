@@ -224,7 +224,7 @@ class Rule(models.Model):
 
   def is_match(self, tx_desc, amount):
     if self.is_regex:
-      if not re.match(self.match_tx_desc, tx_desc, re.I):
+      if not re.search(self.match_tx_desc, tx_desc, re.I):
         return False
     else:
       if not self.match_tx_desc.lower() in tx_desc.lower():
