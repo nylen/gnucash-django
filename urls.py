@@ -6,6 +6,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     (r'^$', 'money_views.views.index'),
+    (r'^any_account$', 'money_views.views.any_account'),
     (r'^accounts/(?P<key>[0-9a-f]+)$', 'money_views.views.account'),
     (r'^accounts/(?P<key>[0-9a-f]+)/modify$', 'money_views.views.modify'),
     (r'^accounts/(?P<key>[0-9a-f]+)/categorize$', 'money_views.views.batch_categorize'),

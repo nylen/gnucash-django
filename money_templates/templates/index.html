@@ -9,5 +9,17 @@
     {% for account in accounts %}
       {% include "account_block.html" %}
     {% endfor %}
+    <div class="block">
+      <form action="{% url money_views.views.any_account %}" method="get">
+        <label for="select-account">Other account:</label>
+        <select name="select_account" id="select-account">
+          <option value="" selected="selected">(Choose an account)</option>
+          {% for account in all_accounts %}
+            <option value="{{ account.guid }}">{{ account.path }}</option>
+          {% endfor %}
+        </select>
+        <input type="submit" value="Go" />
+      </form>
+    </div>
   </body>
 </html>

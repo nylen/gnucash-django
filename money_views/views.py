@@ -2,7 +2,9 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator          import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers       import reverse
 from django.http                    import HttpResponse
+from django.shortcuts               import redirect
 from django.template                import RequestContext, loader
 
 import filters
@@ -24,11 +26,22 @@ def index(request):
   template = loader.get_template('index.html')
   accounts = [Account.from_path(path) for path in settings.ACCOUNTS_LIST]
 
+  all_accounts = list(Account.objects.all())
+  all_accounts.sort(key=lambda a: a.path())
+
   c = RequestContext(request, {
     'accounts': accounts,
+    'all_accounts': all_accounts,
     'show_account_links': True,
   })
   return HttpResponse(template.render(c))
+
+
+@login_required
+def any_account(request):
+  return redirect(reverse(
+    'money_views.views.account',
+    kwargs={'key': request.GET.get('select_account', '')}))
 
 
 @login_required
