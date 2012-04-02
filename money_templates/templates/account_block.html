@@ -43,7 +43,13 @@
     {% endif %}
     <tr>
       <th>Changed:</td>
-      <td>{{ account.last_transaction_date|utc_to_local|format_date_time }}</td>
+      <td>
+        {% if account.last_transaction_date %}
+          {{ account.last_transaction_date|utc_to_local|format_date_time }}
+        {% else %}
+          (no transactions)
+        {% endif %}
+      </td>
     </tr>
   </table>
 </div>
