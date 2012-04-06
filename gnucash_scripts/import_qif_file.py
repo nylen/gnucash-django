@@ -40,7 +40,7 @@ def debug_print(s):
 
 
 def get_id_string(s):
-  if re.search('id:|ref:|t(x|rans(action)?) *id', s, re.I):
+  if models.Transaction.is_id_string(s):
     return s
   else:
     return None

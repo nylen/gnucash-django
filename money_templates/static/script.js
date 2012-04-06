@@ -209,6 +209,70 @@ $(function() {
   });
 
 
+  $('td.memo').each(function() {
+    $(this).html(
+      '<a class="edit-memo no-ul" href="#">'
+      + $(this).data('value')
+      + '</a>');
+  });
+
+  $('.add-memo').show().click(function() {
+    var $memoRow = $(this).closest('tr').next('tr');
+    var $memoCell;
+    while (($memoCell = $memoRow.find('.memo')).length) {
+      var memo = $memoCell.data('value');
+      if (!memo) {
+        $memoRow.removeClass('hidden');
+        $memoCell.find('.edit-memo').trigger('click');
+        return false;
+      }
+      $memoRow = $memoRow.next('tr');
+    }
+    alert("Cannot add a memo to any of this transaction's splits.");
+    return false;
+  });
+
+  $('.edit-memo').click(function() {
+    var $a = $(this);
+    if ($a.hasClass('loading')) {
+      return false;
+    }
+    var account = accounts[$a.closest('tr').data('account')];
+    var oldMemo = $a.closest('.memo').data('value');
+    $a.addClass('editing').text('Editing...');
+    memo = prompt("Enter memo (associated with account '" + account.path + "'):", oldMemo);
+    $a.removeClass('editing');
+    if (memo == null) {
+      $a.text(oldMemo);
+    } else {
+      $a.addClass('loading').text('Setting memo...');
+      $a.closest('.memo').data('value', memo);
+      $.ajax({
+        url: apiFunctionUrls['change_memo'],
+        type: 'POST',
+        headers: {
+          'X-CSRFToken': $.cookie('csrftoken')
+        },
+        data: {
+          'split_guid': $a.closest('tr').data('split'),
+          'memo': memo
+        },
+        cache: false,
+        success: function(d) {
+          $a.text(d.memo || d.error || 'Unknown error');
+        },
+        error: function(xhr, status, e) {
+          $a.text('Error: ' + e);
+        },
+        complete: function(xhr, status) {
+          $a.removeClass('loading');
+        }
+      });
+    }
+    return false;
+  });
+
+
   // The Android ICS browser doesn't seem to give disabled/readonly input
   // fields any special styling.  Apply some manually.
   if (navigator.userAgent.toLowerCase().indexOf('android') >= 0) {

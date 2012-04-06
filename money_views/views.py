@@ -7,6 +7,7 @@ from django.http                    import HttpResponse
 from django.shortcuts               import redirect
 from django.template                import RequestContext, loader
 
+import api
 import filters
 import forms
 import settings
@@ -39,9 +40,13 @@ def index(request):
 
 @login_required
 def any_account(request):
-  return redirect(reverse(
-    'money_views.views.account',
-    kwargs={'key': request.GET.get('select_account', '')}))
+  key = request.GET.get('select_account', '')
+  if key:
+    return redirect(reverse(
+      'money_views.views.account',
+      kwargs={'key': request.GET.get('select_account', '')}))
+  else:
+    return redirect('money_views.views.index')
 
 
 @login_required
@@ -82,7 +87,9 @@ def account(request, key):
     'one_opposing_account_filter_applied': splits.one_opposing_account_filter_applied,
     'regex_chars_js': json.dumps(filters.TransactionSplitFilter.REGEX_CHARS),
     'accounts_js': json.dumps(choices.accounts_dict),
+    'current_account_js': json.dumps(account.guid),
     'num_transactions_js': json.dumps(page.paginator.count),
+    'api_functions_js': json.dumps(api.function_urls.urls_dict),
     'account': account,
     'page': page,
     'filter_form': filter_form,

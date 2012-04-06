@@ -12,6 +12,8 @@ urlpatterns = patterns('',
     (r'^accounts/(?P<key>[0-9a-f]+)/categorize$', 'money_views.views.batch_categorize'),
     (r'^accounts/(?P<key>[0-9a-f]+)/categorize/apply$', 'money_views.views.apply_categorize'),
 
+    (r'^api/change_memo$', 'money_views.api.change_memo'),
+
     (r'^static/(?P<path>.*)$', 'django.contrib.staticfiles.views.serve'),
 
     # Uncomment the admin/doc line below to enable admin documentation:

@@ -145,6 +145,16 @@ class Transaction(models.Model):
   def __unicode__(self):
     return '%s | %s' % (self.post_date, self.description)
 
+  def any_split_has_memo(self):
+    for split in self.split_set.all():
+      if not split.memo_is_id_or_blank():
+        return True
+    return False
+
+  @staticmethod
+  def is_id_string(s):
+    return bool(re.search('id:|ref:|t(x|rans(action)?) *id', s, re.I))
+
 
 class Split(models.Model):
   from_gnucash_api = True
@@ -170,6 +180,9 @@ class Split(models.Model):
 
   def is_credit(self):
     return self.amount() > 0
+
+  def memo_is_id_or_blank(self):
+    return (not self.memo or Transaction.is_id_string(self.memo))
 
   def opposing_split_set(self):
     return self.transaction.split_set.exclude(account__guid=self.account.guid).all()

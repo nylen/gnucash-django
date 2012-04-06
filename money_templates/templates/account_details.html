@@ -10,9 +10,12 @@
       var filteringAny = {% if any_filters_applied %}1{% else %}0{% endif %};
       var regexChars = {{ regex_chars_js|safe }};
       var accounts = {{ accounts_js|safe }};
+      var currentAccountId = {{ current_account_js|safe }};
       var numTransactions = {{ num_transactions_js|safe }};
+      var apiFunctionUrls = {{ api_functions_js|safe }};
     </script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.cookie.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.shiftcheckbox.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.selectfocus.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}jquery.hiddendimensions.js"></script>
@@ -54,8 +57,9 @@
           <th class="opposing_account">Opposing account</th>
           <th class="amount">Amount</th>
         </tr>
+
         {% for split in page.object_list %}
-          <tr class="description-row" data-split="{{ split.guid }}">
+          <tr>
             <td class="description" colspan="3" data-value="{{ split.transaction.description }}">
               {{ split.transaction.description }}
               <a title="Search Google" target="_blank" class="search no-ul"
@@ -63,15 +67,24 @@
 
                 <img src="{{ STATIC_URL }}search_icon.png" />
               </a>
-              {% if split.memo %}
-                <div class="memo" data-value="{{ split.memo }}">
-                  {{ split.memo }}
-                </div>
-              {% else %}
+              {% if not split.transaction.any_split_has_memo %}
                 <a class="add-memo no-ul" title="Add memo" href="#">...</a>
               {% endif %}
             </td>
           </tr>
+
+          {% for memo_split in split.transaction.split_set.all %}
+            <tr{% if memo_split.memo_is_id_or_blank %} class="hidden"{% endif %}
+              data-split="{{ memo_split.guid }}" data-account="{{ memo_split.account.guid }}">
+
+              <td class="memo" colspan="3" data-value="{{ memo_split.memo }}"
+                title="Memo for account: {{ memo_split.account.path }}">
+
+                {{ memo_split.memo }}
+              </td>
+            </tr>
+          {% endfor %}
+
           <tr data-split="{{ split.guid }}">
             <td class="date" data-value="{{ split.transaction.post_date|format_date }}">
               {{ split.transaction.post_date|format_date }}
@@ -95,6 +108,7 @@
             </td>
           </tr>
         {% endfor %}
+
       </table>
     </div>
     {% include "txactions_page_block.html" %}

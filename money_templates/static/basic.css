@@ -2,7 +2,7 @@ body {
   font-family: Verdana, Arial, sans-serif;
 }
 a {
-  outline: none;
+  /* outline: none; */
   text-decoration: none;
   color: blue;
 }
@@ -44,11 +44,19 @@ table.transactions .date {
 }
 table.transactions .description {
   padding: 8px 8px 0;
-}
-table.transactions td.description {
   font-weight: normal;
   font-size: 85%;
   color: #777;
+}
+table.transactions .memo {
+  padding: 0 16px;
+  font-size: 70%;
+}
+table.transactions .memo, table.transactions .edit-memo {
+  color: #777;
+}
+table.transactions .hidden {
+  display: none;
 }
 table.transactions .opposing_account {
   padding-right: 8px;
