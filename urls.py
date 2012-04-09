@@ -13,6 +13,7 @@ urlpatterns = patterns('',
     (r'^accounts/(?P<key>[0-9a-f]+)/categorize/apply$', 'money_views.views.apply_categorize'),
 
     (r'^api/change_memo$', 'money_views.api.change_memo'),
+    (r'^api/change_account$', 'money_views.api.change_account'),
 
     (r'^static/(?P<path>.*)$', 'django.contrib.staticfiles.views.serve'),
 

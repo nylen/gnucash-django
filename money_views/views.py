@@ -56,6 +56,9 @@ def account(request, key):
   account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
 
+  all_accounts = list(Account.objects.all())
+  all_accounts.sort(key=lambda a: a.path)
+
   choices = forms.AccountChoices(account)
 
   filter_form = forms.FilterForm(choices, request.GET)
@@ -86,6 +89,7 @@ def account(request, key):
     'any_filters_applied': splits.any_filters_applied,
     'one_opposing_account_filter_applied': splits.one_opposing_account_filter_applied,
     'regex_chars_js': json.dumps(filters.TransactionSplitFilter.REGEX_CHARS),
+    'all_accounts': all_accounts,
     'accounts_js': json.dumps(choices.accounts_dict),
     'current_account_js': json.dumps(account.guid),
     'num_transactions_js': json.dumps(page.paginator.count),

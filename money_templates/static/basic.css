@@ -2,7 +2,7 @@ body {
   font-family: Verdana, Arial, sans-serif;
 }
 a {
-  /* outline: none; */
+  outline: none;
   text-decoration: none;
   color: blue;
 }
@@ -55,14 +55,17 @@ table.transactions .memo {
 table.transactions .memo, table.transactions .edit-memo {
   color: #777;
 }
+table.transactions .edit-memo {
+  cursor: pointer;
+}
 table.transactions .hidden {
   display: none;
 }
-table.transactions .opposing_account {
+table.transactions .opposing-account {
   padding-right: 8px;
   text-align: center;
 }
-table.transactions td.opposing_account {
+table.transactions td.opposing-account {
   font-size: 85%;
 }
 table.transactions .amount {
@@ -78,6 +81,7 @@ table.transactions .amount {
 table.transactions .add-memo {
   margin-left: 4px;
   color: #999;
+  cursor: pointer;
   display: none;
 }
 table.transactions .change-opposing-account {
@@ -86,6 +90,18 @@ table.transactions .change-opposing-account {
   padding: 1px;
   border: 1px solid #bbb;
   color: #bbb;
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+.select-account {
+  position: absolute;
+  top: 0;
+  left: -1px;
+  opacity: 0;
+  cursor: pointer;
+  height: 1.2em;
+  width: 2em;
   display: none;
 }
 

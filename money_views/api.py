@@ -3,7 +3,7 @@ import json
 from django.core.urlresolvers import reverse
 from django.http              import HttpResponse
 
-from gnucash_data.models import Split, Lock
+from gnucash_data.models import Split, Lock, Account
 
 
 class ApiFunctionUrls():
@@ -53,4 +53,21 @@ def change_memo(request):
   return {
     'split_guid': split_guid,
     'memo': memo,
+  }
+
+
+@json_api_function
+def change_account(request):
+  split_guid = request.POST.get('split_guid', '')
+  account_guid = request.POST.get('account_guid', '')
+  split = Split.objects.get(guid=split_guid)
+  Lock.obtain()
+  try:
+    split.account = Account.objects.get(guid=account_guid)
+    split.save()
+  finally:
+    Lock.release()
+  return {
+    'split_guid': split_guid,
+    'account_guid': account_guid,
   }

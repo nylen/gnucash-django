@@ -22,6 +22,11 @@
     <script type="text/javascript" src="{{ STATIC_URL }}script.js"></script>
   </head>
   <body>
+    <select class="select-account">
+      {% for account in all_accounts %}
+        <option value="{{ account.guid }}">{{ account.path }}</option>
+      {% endfor %}
+    </select>
     <div class="block block-first">
       <a href="{% url money_views.views.index %}">Back to index</a>
     </div>
@@ -68,7 +73,7 @@
                 <img src="{{ STATIC_URL }}search_icon.png" />
               </a>
               {% if not split.transaction.any_split_has_memo %}
-                <a class="add-memo no-ul" title="Add memo" href="#">...</a>
+                <span class="add-memo" title="Add memo">...</span>
               {% endif %}
             </td>
           </tr>
@@ -78,30 +83,34 @@
               data-split="{{ memo_split.guid }}" data-account="{{ memo_split.account.guid }}">
 
               <td class="memo" colspan="3" data-value="{{ memo_split.memo }}"
-                title="Memo for account: {{ memo_split.account.path }}">
+                title="Memo for account '{{ memo_split.account.path }}'">
 
                 {{ memo_split.memo }}
               </td>
             </tr>
           {% endfor %}
 
-          <tr data-split="{{ split.guid }}">
+          <tr data-split="{{ split.guid }}" data-opposing-split="{{ split.opposing_split.guid }}">
             <td class="date" data-value="{{ split.transaction.post_date|format_date }}">
               {{ split.transaction.post_date|format_date }}
             </td>
-            <td class="opposing_account">
+            <td class="opposing-account">
               {% if not one_opposing_account_filter_applied %}
-                <a href="{% query_string 'opposing_accounts=split.opposing_account.guid' '' %}">
+                <a class="opposing-account-name"
+                  href="{% query_string 'opposing_accounts=split.opposing_account.guid' '' %}">
+
                   {{ split.opposing_account.name }}
                 </a>
               {% else %}
-                {{ split.opposing_account.name }}
+                <span class="opposing-account-name">
+                  {{ split.opposing_account.name }}
+                </span>
               {% endif %}
-              <a class="change-opposing-account no-ul" data-value="{{ split.opposing_account.guid }}"
-                title="Change opposing account" href="#">
+              <span class="change-opposing-account" data-value="{{ split.opposing_account.guid }}"
+                title="Change opposing account">
 
                 &#9660;
-              </a>
+              </span>
             </td>
             <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}">
               {{ split.amount|format_decimal }}

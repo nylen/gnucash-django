@@ -210,10 +210,8 @@ $(function() {
 
 
   $('td.memo').each(function() {
-    $(this).html(
-      '<a class="edit-memo no-ul" href="#">'
-      + $(this).data('value')
-      + '</a>');
+    $(this).html('<span class="edit-memo"></span>')
+    .find('.edit-memo').text($(this).data('value'));
   });
 
   $('.add-memo').show().click(function() {
@@ -271,6 +269,45 @@ $(function() {
     }
     return false;
   });
+
+  var $select = $('.select-account');
+
+  $('.change-opposing-account').each(function() {
+    $select.clone().prependTo(this).val($(this).data('value'));
+  }).show()
+  .find('.select-account').show()
+  .change(function() {
+    var $a = $(this).closest('.change-opposing-account');
+    var $name = $a.prev('.opposing-account-name');
+    var oldAccountKey = $(this).closest('.change-opposing-account').data('value');
+    var newAccountKey = $(this).val();
+    if (newAccountKey != oldAccountKey) {
+      $name.addClass('loading').text('Setting account...');
+      $a.data('value', newAccountKey);
+      $.ajax({
+        url: apiFunctionUrls['change_account'],
+        type: 'POST',
+        headers: {
+          'X-CSRFToken': $.cookie('csrftoken')
+        }, data: {
+          'split_guid': $a.closest('tr').data('opposing-split'),
+          'account_guid': newAccountKey
+        },
+        cache: false,
+        success: function(d) {
+          var account = accounts[d.account_guid];
+          $name.text((account && account.name) || d.error || 'Unknown error');
+        }, error: function(xhr, status, e) {
+          $a.text('Error: ' + e);
+        },
+        complete: function(xhr, status) {
+          $a.removeClass('loading');
+        }
+      });
+    }
+  });
+
+  $select.remove();
 
 
   // The Android ICS browser doesn't seem to give disabled/readonly input
