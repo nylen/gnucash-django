@@ -9,6 +9,9 @@ import os
 ALWAYS_DEBUG = True # for contrib.staticfiles support
 RUNNING_WSGI = (os.environ.get('RUNNING_WSGI') == 'true')
 
+SHOW_DEBUG_TOOLBAR = RUNNING_WSGI
+SHOW_DEBUG_TOOLBAR = False
+
 DEBUG = (ALWAYS_DEBUG or not RUNNING_WSGI)
 TEMPLATE_DEBUG = DEBUG
 
@@ -159,3 +162,13 @@ ACCOUNTS_LIST = [
 
 NUM_MERCHANTS_BATCH_CATEGORIZE = 50
 NUM_TRANSACTIONS_PER_PAGE = 50
+
+
+if SHOW_DEBUG_TOOLBAR:
+  MIDDLEWARE_CLASSES += (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+  )
+  INSTALLED_APPS += (
+    'debug_toolbar',
+  )
+  INTERNAL_IPS = ('127.0.0.1')
