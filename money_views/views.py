@@ -12,6 +12,7 @@ import filters
 import forms
 import settings
 from gnucash_data.models import Account
+from utils.misc_functions import profile
 
 
 def get_account(key):
@@ -49,6 +50,7 @@ def any_account(request):
     return redirect('money_views.views.index')
 
 
+#@profile('account.prof')
 @login_required
 def account(request, key):
   template = loader.get_template('account_details.html')
