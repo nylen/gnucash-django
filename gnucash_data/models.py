@@ -27,14 +27,19 @@ class Account(models.Model):
 
   guid = models.CharField(max_length=32, primary_key=True)
   name = models.CharField(max_length=2048)
-  parent = models.ForeignKey('self', db_column='parent_guid', null=True)
+  parent_guid = models.CharField(max_length=32, null=True)
   type = models.CharField(max_length=2048, db_column='account_type')
+
+  _balances = {}
+  _root = None
+  _all_accounts = None
+  _order = None
 
   class Meta:
     db_table = 'accounts'
 
   def __unicode__(self):
-    return self.path()
+    return self.path
 
   @staticmethod
   def from_path(path):
@@ -42,35 +47,103 @@ class Account(models.Model):
     a = Account.get_root()
     if len(parts) > 0:
       for p in parts:
-        a = a.account_set.get(name=p)
+        found = False
+        for c in a.children:
+          if c.name == p:
+            found = True
+            a = c
+            break
+        if not found:
+          raise ValueError("Invalid account path '%s'" % path)
     return a
 
   @staticmethod
   def get_root():
-    return Book.objects.get().root_account
+    Account._ensure_cached()
+    return Account._root
 
+  @staticmethod
+  def get(guid):
+    Account._ensure_cached()
+    return Account._all_accounts[guid]['account']
+
+  @staticmethod
+  def _ensure_cached():
+    if Account._root is None:
+      Account._root = Book.objects.get().root_account
+
+    if Account._all_accounts is None:
+      def _path(account):
+        if account.parent_guid is None:
+          return account.name
+        parts = []
+        a = account
+        while not a.is_root:
+          parts.append(a.name)
+          a = Account.get(a.parent_guid)
+        parts.reverse()
+        return ':'.join(parts)
+
+      Account._all_accounts = {}
+      accounts = list(Account.objects.all())
+
+      for a in accounts:
+        Account._all_accounts[a.guid] = {
+          'account': a,
+          'path': '',
+          'children': [],
+        }
+      for a in accounts:
+        Account._all_accounts[a.guid]['path'] = _path(a)
+        if a.parent_guid is not None:
+          Account._all_accounts[a.parent_guid]['children'].append(a)
+      for a in accounts:
+        Account._all_accounts[a.guid]['children'] \
+          .sort(key=lambda a: a.name.lower())
+
+    if Account._order is None:
+      def _build_order(account):
+        Account._order.append(account.guid)
+        for a in account.children:
+          _build_order(a)
+      Account._order = []
+      _build_order(Account.get_root())
+
+  @staticmethod
+  def clear_caches():
+    Account._balances = {}
+    Account._root = None
+    Account._all_accounts = None
+    Account._order = None
+
+  @property
   def balance(self):
-    #return sum(s.amount() for s in self.split_set.all()) # SLOW
-    cursor = connections['gnucash'].cursor()
-    cursor.execute('''
-        SELECT value_denom, SUM(value_num)
-        FROM splits
-        WHERE account_guid = %s
-        GROUP BY 1
-      ''', [self.guid])
-    amount = Decimal(0)
-    for row in cursor.fetchall():
-      amount += row[1] / row[0]
-    return amount
+    if self.guid not in Account._balances:
+      #return sum(s.amount() for s in self.split_set.all()) # SLOW
+      cursor = connections['gnucash'].cursor()
+      cursor.execute('''
+          SELECT value_denom, SUM(value_num)
+          FROM splits
+          WHERE account_guid = %s
+          GROUP BY 1
+        ''', [self.guid])
+      amount = Decimal(0)
+      for row in cursor.fetchall():
+        amount += row[1] / row[0]
+      Account._balances[self.guid] = amount
+    return Account._balances[self.guid]
 
+  @property
   def last_transaction_date(self):
     s = self.split_set.select_related(depth=1)
     utc = s.aggregate(max_date=Max('transaction__enter_date'))['max_date']
     return utc
 
+  @property
   def has_updates(self):
     return (Update.objects.filter(account_guid=self.guid).count() > 0)
 
+  @property
   def last_update(self):
     updates = Update.objects.filter(account_guid=self.guid)
     try:
@@ -79,23 +152,24 @@ class Account(models.Model):
     except:
       return None
 
+  @property
+  def children(self):
+    Account._ensure_cached()
+    return list(Account._all_accounts[self.guid]['children'])
+
+  @property
   def is_root(self):
     return self.guid == Account.get_root().guid
 
+  @property
   def path(self):
-    if self.parent is None:
-      return self.name
-    parts = []
-    a = self
-    while not a.is_root():
-      parts.append(a.name)
-      a = a.parent
-    parts.reverse()
-    return ':'.join(parts)
+    Account._ensure_cached()
+    return Account._all_accounts[self.guid]['path']
 
+  @property
   def webapp_key(self):
     try:
-      return settings.ACCOUNTS_LIST.index(self.path())
+      return settings.ACCOUNTS_LIST.index(self.path)
     except ValueError:
       return self.guid
 
@@ -110,7 +184,7 @@ class Update(models.Model):
 
   def __unicode__(self):
     return "Account '%s' updated at %s (balance: %s)" % (
-      Account.objects.get(guid=self.account_guid),
+      Account.get(self.account_guid),
       self.updated,
       '?' if self.balance is None else '%0.2f' % self.balance)
 
@@ -126,7 +200,7 @@ class ImportedTransaction(models.Model):
 
   def __unicode__(self):
     return "Account '%s', transaction '%s', source ID '%s'" % (
-      Account.objects.get(guid=self.account_guid),
+      Account.get(self.account_guid),
       Transaction.objects.get(guid=self.tx_guid),
       self.source_tx_id);
 
@@ -145,9 +219,10 @@ class Transaction(models.Model):
   def __unicode__(self):
     return '%s | %s' % (self.post_date, self.description)
 
+  @property
   def any_split_has_memo(self):
     for split in self.split_set.all():
-      if not split.memo_is_id_or_blank():
+      if not split.memo_is_id_or_blank:
         return True
     return False
 
@@ -175,20 +250,29 @@ class Split(models.Model):
       self.transaction,
       self.amount())
 
+  @property
   def amount(self):
     return Decimal(self.value_num) / Decimal(self.value_denom)
 
+  @property
   def is_credit(self):
-    return self.amount() > 0
+    return self.amount > 0
 
+  @property
   def memo_is_id_or_blank(self):
     return (not self.memo or Transaction.is_id_string(self.memo))
 
+  @property
   def opposing_split_set(self):
     return self.transaction.split_set.exclude(account__guid=self.account.guid).all()
 
+  @property
+  def opposing_split(self):
+    return self.opposing_split_set[0]
+
+  @property
   def opposing_account(self):
-    return self.opposing_split_set()[0].account
+    return self.opposing_split.account
 
 
 class Lock(models.Model):
@@ -262,7 +346,7 @@ class Rule(models.Model):
     return "Match '%s'%s -> account '%s'" % (
       self.match_tx_desc,
       ' (regex)' if self.is_regex else '',
-      Account.objects.get(guid=self.opposing_account_guid))
+      Account.get(self.opposing_account_guid))
 
   def is_match(self, tx_desc, amount):
     if self.is_regex:
@@ -295,4 +379,4 @@ class RuleAccount(models.Model):
   def __unicode__(self):
     return "Rule '%s' for account '%s'" % (
       self.rule,
-      Account.objects.get(guid=self.account_guid))
+      Account.get(self.account_guid))

@@ -19,7 +19,7 @@ def get_account(key):
     path = settings.ACCOUNTS_LIST[int(key)]
     return Account.from_path(path)
   except ValueError:
-    return Account.objects.get(guid=key)
+    return Account.get(key)
 
 
 @login_required
@@ -28,7 +28,7 @@ def index(request):
   accounts = [Account.from_path(path) for path in settings.ACCOUNTS_LIST]
 
   all_accounts = list(Account.objects.all())
-  all_accounts.sort(key=lambda a: a.path())
+  all_accounts.sort(key=lambda a: a.path)
 
   c = RequestContext(request, {
     'accounts': accounts,
@@ -112,7 +112,7 @@ def modify(request, key):
   opposing_account_guid = request.POST['change_opposing_account']
   opposing_account = None
   try:
-    opposing_account = Account.objects.get(guid=opposing_account_guid)
+    opposing_account = Account.get(opposing_account_guid)
   except Account.DoesNotExist:
     errors = "Account '%s' not found." % opposing_account_guid
 
@@ -207,7 +207,7 @@ def apply_categorize(request, key):
         modified_tx_count += filters.RuleHelper.apply(
           splits=splits,
           tx_desc=tx_desc,
-          opposing_account=Account.objects.get(guid=opposing_account_guid),
+          opposing_account=Account.get(opposing_account_guid),
           save_rule=True)
 
   c = RequestContext(request, {
