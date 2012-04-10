@@ -11,7 +11,7 @@ import api
 import filters
 import forms
 import settings
-from gnucash_data.models import Account
+from gnucash_data.models import Account, Transaction
 
 
 def get_account(key):
@@ -84,6 +84,8 @@ def account(request, key):
     page = pages.page(1)
   except EmptyPage:
     page = pages.page(pages.num_pages)
+
+  Transaction.cache_from_splits(page.object_list)
 
   c = RequestContext(request, {
     'any_filters_applied': splits.any_filters_applied,

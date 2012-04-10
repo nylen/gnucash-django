@@ -213,6 +213,8 @@ class Transaction(models.Model):
   enter_date = models.DateTimeField()
   description = models.CharField(max_length=2048)
 
+  _cached_transactions = {}
+
   class Meta:
     db_table = 'transactions'
 
@@ -221,7 +223,7 @@ class Transaction(models.Model):
 
   @property
   def any_split_has_memo(self):
-    for split in self.split_set.all():
+    for split in self.splits:
       if not split.memo_is_id_or_blank:
         return True
     return False
@@ -229,6 +231,32 @@ class Transaction(models.Model):
   @staticmethod
   def is_id_string(s):
     return bool(re.search('id:|ref:|t(x|rans(action)?) *id', s, re.I))
+
+  @property
+  def splits(self):
+    if self.guid in Transaction._cached_transactions:
+      return Transaction._cached_transactions[self.guid]['splits']
+    else:
+      return self.split_set.all()
+
+  @staticmethod
+  def cache_from_splits(splits):
+    transactions = Transaction.objects \
+      .filter(guid__in=(s.transaction.guid for s in splits))
+    splits = Split.objects \
+      .select_related(depth=2) \
+      .filter(transaction__guid__in=(t.guid for t in transactions))
+    for tx in transactions:
+      Transaction._cached_transactions[tx.guid] = {
+        'transaction': tx,
+        'splits': [],
+      }
+    for s in splits:
+      Transaction._cached_transactions[s.transaction.guid]['splits'].append(s)
+
+  @staticmethod
+  def clear_caches():
+    Transaction._cached_transactions = {}
 
 
 class Split(models.Model):
@@ -264,7 +292,7 @@ class Split(models.Model):
 
   @property
   def opposing_split_set(self):
-    return self.transaction.split_set.exclude(account__guid=self.account.guid).all()
+    return [s for s in self.transaction.splits if s.account != self.account]
 
   @property
   def opposing_split(self):

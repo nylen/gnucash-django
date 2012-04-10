@@ -78,7 +78,7 @@
             </td>
           </tr>
 
-          {% for memo_split in split.transaction.split_set.all %}
+          {% for memo_split in split.transaction.splits %}
             <tr{% if memo_split.memo_is_id_or_blank %} class="hidden"{% endif %}
               data-split="{{ memo_split.guid }}" data-account="{{ memo_split.account.guid }}">
 
