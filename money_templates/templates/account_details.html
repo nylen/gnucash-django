@@ -96,21 +96,19 @@
             </td>
             <td class="opposing-account">
               {% if not one_opposing_account_filter_applied %}
-                <a class="opposing-account-name"
+                <a class="filter-opposing-account no-ul" title="Filter on this opposing account"
                   href="{% query_string 'opposing_accounts=split.opposing_account.guid' '' %}">
 
-                  {{ split.opposing_account.name }}
+                  ...
                 </a>
-              {% else %}
-                <span class="opposing-account-name">
-                  {{ split.opposing_account.name }}
-                </span>
               {% endif %}
-              <span class="change-opposing-account" data-value="{{ split.opposing_account.guid }}"
-                title="Change opposing account">
+              <a class="opposing-account-name" title="Go to account '{{ split.opposing_account.path }}'"
+                href="{% url money_views.views.account split.opposing_account.guid %}">
 
-                &#9660;
-              </span>
+                {{ split.opposing_account.name }}
+              </a>
+              <span class="change-opposing-account" data-value="{{ split.opposing_account.guid }}"
+                title="Change opposing account">&#9660;</span>
             </td>
             <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}">
               {{ split.amount|format_decimal }}

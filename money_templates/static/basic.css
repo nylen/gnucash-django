@@ -80,12 +80,18 @@ table.transactions .amount {
 
 table.transactions .add-memo {
   margin-left: 4px;
+  font-size: 75%;
   color: #999;
   cursor: pointer;
   display: none;
 }
+table.transactions .filter-opposing-account {
+  margin-right: 2px;
+  font-size: 75%;
+  color: #999;
+}
 table.transactions .change-opposing-account {
-  margin-left: 4px;
+  margin-left: 2px;
   font-size: 85%;
   padding: 1px;
   border: 1px solid #bbb;
