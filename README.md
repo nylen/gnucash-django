@@ -25,13 +25,15 @@ Requirements
 
  - Django 1.3 or higher
 
- - Python GnuCash API installed (currently this is only used in the code that
-   imports QIF files)
-
  - A GnuCash file that uses a database backend (tested with MySQL; should work
    with Postgres or SQLite as well)
 
- - (Optional) The Python `psutil` module
+ - Python `dateutil` module installed
+
+ - _(Optional)_ Python GnuCash API installed (currently this is only used in the
+   code that imports QIF files)
+
+ - _(Optional)_ Python `psutil` module installed
 
 Installation
 ------------
