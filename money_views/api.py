@@ -1,7 +1,7 @@
 import json
 
 from django.core.urlresolvers import reverse
-from django.http              import HttpResponse
+from django.http              import HttpResponse, HttpResponseForbidden
 
 from gnucash_data.models import Split, Lock, Account
 
@@ -31,7 +31,8 @@ def json_api_function(func):
   def helper(request, *args, **kwargs):
     try:
       if not request.user.is_authenticated():
-        return HttpResponseForbidden()
+        return HttpResponseForbidden(
+          'User is not authenticated.  Refresh the page and try again.')
       data = json.dumps(func(request, *args, **kwargs))
     except Exception, e:
       data = json.dumps({'error': 'Error: ' + str(e)})
