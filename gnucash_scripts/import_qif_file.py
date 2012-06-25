@@ -121,65 +121,80 @@ try:
           txinfo['memo'] = value
 
         elif marker == '^' and txinfo <> {}:
+          # End of transaction - add it if it's not a duplicate
           updated = True
 
-          # End of transaction - add it if it's not a duplicate
           this_id = make_transaction_id(txinfo)
 
           if models.ImportedTransaction.objects.filter(source_tx_id=this_id).count():
             debug_print('Not adding duplicate transaction %s'
               % get_transaction_string(txinfo))
           else:
-            debug_print('Adding transaction %s' % get_transaction_string(txinfo))
-            gnc_amount = decimal_to_gnc_numeric(txinfo['amount'])
-
-            # From example script 'test_imbalance_transaction.py'
-            trans = Transaction(book)
-            trans.BeginEdit()
-            trans.SetCurrency(USD)
-            trans.SetDescription(txinfo['description'])
-            trans.SetDate(
-              txinfo['date'].day,
-              txinfo['date'].month,
-              txinfo['date'].year)
-
-            split1 = Split(book)
-            split1.SetParent(trans)
-            split1.SetAccount(acct)
-            if txinfo.has_key('memo'):
-              split1.SetMemo(txinfo['memo'])
-            # The docs say both of these are needed:
-            # http://svn.gnucash.org/docs/HEAD/group__Transaction.html
-            split1.SetValue(gnc_amount)
-            split1.SetAmount(gnc_amount)
-            split1.SetReconcile('c')
-
             opposing_acct = None
             opposing_acct_path = None
 
+            ignore_this_transaction = False
+            tx_guid = None
+
             for rule in rules:
               if rule.is_match(txinfo['description'], txinfo['amount']):
-                opposing_acct = get_account_by_guid(root, rule.opposing_account_guid)
-                opposing_acct_path = get_account_path(opposing_acct)
+                if rule.opposing_account_guid is None:
+                  ignore_this_transaction = True
+                else:
+                  opposing_acct = get_account_by_guid(root, rule.opposing_account_guid)
+                  opposing_acct_path = get_account_path(opposing_acct)
+
                 debug_print('Transaction %s matches rule %i (%s)'
                   % (get_transaction_string(txinfo), rule.id, opposing_acct_path))
 
-            if opposing_acct != None:
-              debug_print('Categorizing transaction %s as %s'
-                % (get_transaction_string(txinfo), opposing_acct_path))
-              split2 = Split(book)
-              split2.SetParent(trans)
-              split2.SetAccount(opposing_acct)
-              split2.SetValue(gnc_amount.neg())
-              split2.SetAmount(gnc_amount.neg())
-              split2.SetReconcile('c')
+            if ignore_this_transaction:
 
-            trans.CommitEdit()
+              debug_print('Ignoring transaction %s' % get_transaction_string(txinfo))
+
+            else:
+
+              debug_print('Adding transaction %s' % get_transaction_string(txinfo))
+              gnc_amount = decimal_to_gnc_numeric(txinfo['amount'])
+
+              # From example script 'test_imbalance_transaction.py'
+              trans = Transaction(book)
+              trans.BeginEdit()
+              trans.SetCurrency(USD)
+              trans.SetDescription(txinfo['description'])
+              trans.SetDate(
+                txinfo['date'].day,
+                txinfo['date'].month,
+                txinfo['date'].year)
+
+              split1 = Split(book)
+              split1.SetParent(trans)
+              split1.SetAccount(acct)
+              if txinfo.has_key('memo'):
+                split1.SetMemo(txinfo['memo'])
+              # The docs say both of these are needed:
+              # http://svn.gnucash.org/docs/HEAD/group__Transaction.html
+              split1.SetValue(gnc_amount)
+              split1.SetAmount(gnc_amount)
+              split1.SetReconcile('c')
+
+              if opposing_acct != None:
+                debug_print('Categorizing transaction %s as %s'
+                  % (get_transaction_string(txinfo), opposing_acct_path))
+                split2 = Split(book)
+                split2.SetParent(trans)
+                split2.SetAccount(opposing_acct)
+                split2.SetValue(gnc_amount.neg())
+                split2.SetAmount(gnc_amount.neg())
+                split2.SetReconcile('c')
+
+              trans.CommitEdit()
+              tx_guid = trans.GetGUID().to_string()
+
             txinfo = {}
 
             tx = models.ImportedTransaction()
             tx.account_guid = acct_guid
-            tx.tx_guid = trans.GetGUID().to_string()
+            tx.tx_guid = tx_guid
             tx.source_tx_id = this_id
             imported_transactions.append(tx)
 

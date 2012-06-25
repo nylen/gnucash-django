@@ -191,7 +191,7 @@ class Update(models.Model):
 
 class ImportedTransaction(models.Model):
   account_guid = models.CharField(max_length=32)
-  tx_guid = models.CharField(max_length=32)
+  tx_guid = models.CharField(max_length=32, null=True)
   source_tx_id = models.CharField(max_length=2048)
   update = models.ForeignKey(Update)
 
@@ -360,7 +360,7 @@ class Lock(models.Model):
 
 
 class Rule(models.Model):
-  opposing_account_guid = models.CharField(max_length=32)
+  opposing_account_guid = models.CharField(max_length=32, null=True)
   match_tx_desc = models.CharField(max_length=2048)
   is_regex = models.BooleanField()
   min_amount = models.DecimalField(max_digits=30, decimal_places=5, null=True)
