@@ -33,7 +33,7 @@ def index(request):
   c = RequestContext(request, {
     'accounts': accounts,
     'all_accounts': all_accounts,
-    'show_account_links': True,
+    'showing_index': True,
   })
   return HttpResponse(template.render(c))
 
