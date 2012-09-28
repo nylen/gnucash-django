@@ -4,7 +4,7 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width" />
-    <title>Account details - {{ account.name }}</title>
+    <title>Account details - {{ account.description_or_name }}</title>
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}basic.css">
     <script type="text/javascript">
       var filteringAny = {% if any_filters_applied %}1{% else %}0{% endif %};
@@ -105,8 +105,8 @@
               <a class="opposing-account-name" title="Go to account '{{ split.opposing_account.path }}'"
                 href="{% url money_views.views.account split.opposing_account.guid %}">
 
-                {{ split.opposing_account.name }}
-              </a>
+                {{ split.opposing_account.description_or_name }}</a>
+
               <span class="change-opposing-account" data-value="{{ split.opposing_account.guid }}"
                 title="Change opposing account">&#9660;</span>
             </td>

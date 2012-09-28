@@ -5,9 +5,9 @@
       <th>Account:</th>
       <td>
         {% if showing_index %}
-          <a href="{% url money_views.views.account account.webapp_key %}">{{ account.name }}</a>
+          <a href="{% url money_views.views.account account.webapp_key %}">{{ account.description_or_name }}</a>
         {% else %}
-          {{ account.name }}
+          {{ account.description_or_name }}
         {% endif %}
       </td>
     </tr>

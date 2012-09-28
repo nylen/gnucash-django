@@ -29,6 +29,7 @@ class Account(models.Model):
   name = models.CharField(max_length=2048)
   parent_guid = models.CharField(max_length=32, null=True)
   type = models.CharField(max_length=2048, db_column='account_type')
+  description = models.CharField(max_length=2048)
 
   _balances = {}
   _root = None
@@ -121,6 +122,13 @@ class Account(models.Model):
     Account._root = None
     Account._all_accounts = None
     Account._order = None
+
+  @property
+  def description_or_name(self):
+    if self.description:
+      return self.description
+    else:
+      return self.name
 
   @property
   def balance(self):
