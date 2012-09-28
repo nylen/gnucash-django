@@ -100,7 +100,7 @@ table.transactions .change-opposing-account {
   overflow: hidden;
   display: none;
 }
-.select-account {
+.change-account {
   position: absolute;
   top: 0;
   left: -1px;

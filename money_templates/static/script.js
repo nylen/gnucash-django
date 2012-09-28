@@ -263,12 +263,12 @@ $(function() {
     return false;
   });
 
-  var $select = $('.select-account');
+  var $select = $('.change-account');
 
   $('.change-opposing-account').each(function() {
     $select.clone().prependTo(this).val($(this).data('value'));
   }).show()
-  .find('.select-account').show()
+  .find('.change-account').show()
   .change(function() {
     var $a = $(this).closest('.change-opposing-account');
     var $name = $a.prev('.opposing-account-name');

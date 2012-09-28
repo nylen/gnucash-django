@@ -22,7 +22,9 @@
     <script type="text/javascript" src="{{ STATIC_URL }}script.js"></script>
   </head>
   <body>
-    <select class="select-account">
+    {# To avoid duplication of lots of HTML, this element is copied to all transactions #}
+    {# using JavaScript, then the original is removed from the page. #}
+    <select class="change-account">
       {% for account in all_accounts %}
         <option value="{{ account.guid }}">{{ account.path }}</option>
       {% endfor %}
