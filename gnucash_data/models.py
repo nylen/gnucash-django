@@ -68,6 +68,12 @@ class Account(models.Model):
     return Account._all_accounts[guid]['account']
 
   @staticmethod
+  def get_all():
+    Account._ensure_cached()
+    return [obj['account'] \
+      for obj in Account._all_accounts.itervalues()]
+
+  @staticmethod
   def _ensure_cached():
     if Account._root is None:
       Account._root = Book.objects.get().root_account

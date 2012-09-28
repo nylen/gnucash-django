@@ -1,6 +1,8 @@
 from django    import forms
 from django.db import connections
 
+from gnucash_data.models import Account
+
 
 DEFAULT_FILTER_ACCOUNT_CHOICES = [('all', '(all)')]
 DEFAULT_MODIFY_ACCOUNT_CHOICES = [('', '(no change)')]
@@ -72,7 +74,7 @@ class AccountChoices():
   def __init__(self, account, **kwargs):
     cursor = connections['gnucash'].cursor()
     cursor.execute('''
-        SELECT a.guid, a.name, a.parent_guid,
+        SELECT a.guid,
 
           CASE
             WHEN s.account_guid IS NULL THEN 0
@@ -105,40 +107,28 @@ class AccountChoices():
         WHERE a.account_type <> 'ROOT'
       ''', [account.guid, account.guid])
 
-    accounts_dict = {}
-
     filter_all_account_choices = []
     filter_account_choices = []
     modify_account_choices = []
 
+    exclude_guids = [account.guid]
+    if 'exclude' in kwargs:
+      exclude_guids.append(kwargs['exclude'].guid)
+
     for row in cursor.fetchall():
-      filter_all_account_choices.append((row[0], row[1]))
-      if row[3]:
-        filter_account_choices.append((row[0], row[1]))
-      accounts_dict[row[0]] = {
-        'name': row[1],
-        'parent_guid': row[2],
-        'placeholder': row[4],
-      }
+      guid = row[0]
+      path = Account.get(guid).path
+      is_present = row[1]
+      placeholder = row[2]
+      filter_all_account_choices.append((guid, path))
+      if is_present:
+        filter_account_choices.append((guid, path))
+      if not placeholder and guid not in exclude_guids:
+        modify_account_choices.append((guid, path))
 
-    for guid, a in accounts_dict.items():
-      if not a['placeholder']:
-        path_list = [a['name']]
-        parent_guid = a['parent_guid']
-        while parent_guid in accounts_dict:
-          path_list.append(accounts_dict[parent_guid]['name'])
-          parent_guid = accounts_dict[parent_guid]['parent_guid']
-        path_list.reverse()
-        a['path'] = ':'.join(path_list)
-        if guid != account.guid:
-          if 'exclude' not in kwargs or guid != kwargs['exclude'].guid:
-            modify_account_choices.append((guid, a['path']))
-
-    get_account_path = lambda a: accounts_dict[a[0]]['path']
+    get_account_path = lambda a: a[1]
     filter_account_choices.sort(key=get_account_path)
     modify_account_choices.sort(key=get_account_path)
-
-    self.accounts_dict = accounts_dict
 
     self.filter_all_account_choices = \
       DEFAULT_FILTER_ACCOUNT_CHOICES + filter_all_account_choices

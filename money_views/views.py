@@ -27,7 +27,7 @@ def index(request):
   template = loader.get_template('index.html')
   accounts = [Account.from_path(path) for path in settings.ACCOUNTS_LIST]
 
-  all_accounts = list(Account.objects.all())
+  all_accounts = Account.get_all()
   all_accounts.sort(key=lambda a: a.path)
 
   c = RequestContext(request, {
@@ -56,8 +56,14 @@ def account(request, key):
   account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
 
-  all_accounts = list(Account.objects.all())
+  all_accounts = Account.get_all()
   all_accounts.sort(key=lambda a: a.path)
+  all_accounts_dict = {}
+  for a in all_accounts:
+    all_accounts_dict[a.guid] = {
+      'path': a.path,
+      'name': a.name
+    }
 
   choices = forms.AccountChoices(account)
 
@@ -92,7 +98,7 @@ def account(request, key):
     'one_opposing_account_filter_applied': splits.one_opposing_account_filter_applied,
     'regex_chars_js': json.dumps(filters.TransactionSplitFilter.REGEX_CHARS),
     'all_accounts': all_accounts,
-    'accounts_js': json.dumps(choices.accounts_dict),
+    'accounts_js': json.dumps(all_accounts_dict),
     'current_account_js': json.dumps(account.guid),
     'num_transactions_js': json.dumps(page.paginator.count),
     'api_functions_js': json.dumps(api.function_urls.urls_dict),

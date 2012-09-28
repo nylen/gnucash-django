@@ -79,13 +79,6 @@ $(function() {
     selectAll: '#id_opposing_accounts_0'
   });
 
-  $('#form-filters input[name=opposing_accounts]').each(function() {
-    var guid = $(this).val();
-    if (guid in accounts) {
-      $(this).closest('label').attr('title', accounts[guid].path);
-    }
-  });
-
   $('#forms :text').attr('autocomplete', 'off').selectfocus();
 
 
