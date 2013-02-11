@@ -20,16 +20,14 @@
       <td>
         {{ account.balance|format_dollar_amount_neg }}
         {% if account.balance == account.last_update.balance %}
-          <span class="balance-match" title="Balance matches">&#10004;</span>
+          <i class="balance-match icon-ok" title="Balance matches"></i>
         {% else %}
           {% if account.has_updates %}
             {% if account.last_update.balance == None %}
               <span class="balance-unknown" title="Balance unverified">?</span>
             {% else %}
-              <span class="balance-mismatch"
-                title="Balance does not match (source: {{ account.last_update.balance|format_dollar_amount }})">
-                &#10006;
-              </span>
+              <i class="balance-mismatch icon-remove"
+                title="Balance does not match (source: {{ account.last_update.balance|format_dollar_amount }})"></i>
             {% endif %}
           {% endif %}
         {% endif %}

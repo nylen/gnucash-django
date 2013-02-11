@@ -24,7 +24,7 @@ def get_account(key):
 
 @login_required
 def index(request):
-  template = loader.get_template('index.html')
+  template = loader.get_template('page_index.html')
   accounts = [Account.from_path(path) for path in settings.ACCOUNTS_LIST]
 
   all_accounts = Account.get_all()
@@ -51,7 +51,7 @@ def any_account(request):
 
 @login_required
 def account(request, key):
-  template = loader.get_template('account_details.html')
+  template = loader.get_template('page_account_details.html')
 
   account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
@@ -112,7 +112,7 @@ def account(request, key):
 
 @login_required
 def modify(request, key):
-  template = loader.get_template('modify.html')
+  template = loader.get_template('page_modify.html')
 
   account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
@@ -170,7 +170,7 @@ def modify(request, key):
 
 @login_required
 def batch_categorize(request, key):
-  template = loader.get_template('batch_categorize.html')
+  template = loader.get_template('page_batch_categorize.html')
 
   account = get_account(key)
   splits = filters.TransactionSplitFilter(account)
@@ -193,7 +193,7 @@ def batch_categorize(request, key):
 
 @login_required
 def apply_categorize(request, key):
-  template = loader.get_template('apply_categorize.html')
+  template = loader.get_template('page_apply_categorize.html')
 
   account = get_account(key)
   splits = filters.TransactionSplitFilter(account)

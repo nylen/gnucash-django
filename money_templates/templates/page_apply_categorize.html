@@ -1,0 +1,26 @@
+{% extends "page_base.html" %}
+
+{% block title %}Categorize multiple transactions{% endblock %}
+
+{% block body %}
+  <div class="block block-first">
+    <div class="note">
+      Modified <b>{{ modified_tx_count }}</b> transaction{% if modified_tx_count != 1 %}s{% endif %}
+      and created <b>{{ rule_count }}</b> rule{% if rule_count != 1 %}s{% endif %}.
+    </div>
+  </div>
+  <div class="block">
+    <ul class="links">
+      <li>
+        <a href="{% url money_views.views.account account.webapp_key %}">
+          Back to account
+        </a>
+      </li>
+      <li>
+        <a href="{% url money_views.views.batch_categorize account.webapp_key %}">
+          Categorize more transactions
+        </a>
+      </li>
+    </ul>
+  </div>
+{% endblock %}

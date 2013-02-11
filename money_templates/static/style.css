@@ -24,6 +24,11 @@ a.no-ul:hover {
   border-top: none;
 }
 
+table#index-account-select td.middle select {
+  /* display: table-cell; */
+  width: 100%;
+}
+
 ul.links {
   padding: .75em 0 .75em 30px;
   margin: 0;
@@ -35,12 +40,9 @@ table.account-block th {
   text-align: left;
 }
 
-a.search img {
-  vertical-align: middle;
-}
-
 table.transactions .date {
   text-align: left;
+  min-width: 4.5em;
 }
 table.transactions .description {
   padding: 8px 8px 0;
@@ -51,9 +53,15 @@ table.transactions .description {
 table.transactions .memo {
   padding: 0 16px;
   font-size: 70%;
-}
-table.transactions .memo, table.transactions .edit-memo {
   color: #777;
+}
+.transaction-control {
+  color: #ddd;
+  font-size: 90%;
+  padding: 4px;
+}
+.transaction-control:hover {
+  color: #999;
 }
 table.transactions .edit-memo {
   cursor: pointer;
@@ -79,23 +87,16 @@ table.transactions .amount {
 }
 
 table.transactions .add-memo {
-  margin-left: 4px;
-  font-size: 75%;
-  color: #999;
   cursor: pointer;
   display: none;
 }
-table.transactions .filter-opposing-account {
-  margin-right: 2px;
-  font-size: 75%;
-  color: #999;
-}
 table.transactions .change-opposing-account {
-  margin-left: 2px;
-  font-size: 85%;
-  padding: 1px;
+  padding: 1px 3px;
   border: 1px solid #bbb;
-  color: #bbb;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  color: #aaa;
   position: relative;
   overflow: hidden;
   display: none;

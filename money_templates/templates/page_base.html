@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <title>{% block title %}Account balances{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}style.css">
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}font-awesome.css">
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.cookie.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.shiftcheckbox.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.selectfocus.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}jquery.hiddendimensions.js"></script>
+    {% block scripts %}
+    {% endblock %}
+  </head>
+  <body>
+    {% block body %}
+    {% endblock %}
+  </body>
+</html>

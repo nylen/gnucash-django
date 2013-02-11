@@ -1,0 +1,69 @@
+{% extends "page_base.html" %}
+
+{% load template_extras %}
+
+{% block title %}Categorize multiple transactions{% endblock %}
+
+{% block body %}
+  <div class="block block-first">
+    <div class="note">
+      Use the form below to categorize multiple transactions at once, and
+      create rules that will be applied to all future transactions with the
+      same description.  Only uncategorized transactions (those that
+      currently balance to the <b>Imbalance-USD</b> account) will be
+      modified.
+    </div>
+  </div>
+  <form action="{% url money_views.views.apply_categorize account.webapp_key %}" method="post">
+    <div class="block">
+      <input type="submit" value="Categorize transactions" />
+      <a href="{% url money_views.views.account account.webapp_key %}">Back to account</a>
+    </div>
+    <div class="block">
+      {% if no_merchants %}
+        No uncategorized transactions.
+      {% else %}
+        <table id="batch-modify-fields" class="form-table">
+          {% for f in batch_modify_form.hidden_fields %}
+            {{ f }}
+          {% endfor %}
+          {% for f in batch_modify_form.visible_fields %}
+            <tr>
+              <th>
+                <div class="description">
+                  {{ f.field.merchant_info.index }}.
+                  <a href="{% url money_views.views.account account.webapp_key %}?opposing_accounts={{ imbalance.guid|urlencode }}&tx_desc={{ f.field.merchant_info.tx_desc|urlencode }}">
+                    {{ f.field.merchant_info.description }}</a>
+                  <a title="Search Google" target="_blank" class="transaction-control search no-ul"
+                    href="http://www.google.com/search?q={{ f.field.merchant_info.tx_desc|urlencode }}">
+
+                    <i class="icon-search"></i>
+                  </a>
+                </div>
+                <div class="info">
+                  <span class="count">
+                    {{ f.field.merchant_info.count }}
+                  </span>
+                  transaction{% if f.field.merchant_info.count != 1 %}s{% endif %}
+                  |
+                  <span class="{% if f.field.merchant_info.amount < 0 %}debit{% else %}credit{% endif %}">
+                    {{ f.field.merchant_info.amount|format_dollar_amount }}
+                  </span>
+                </div>
+              </th>
+              <td>
+                {{ f.errors }}
+                {{ f }}
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% endif %}
+      {% csrf_token %}
+    </div>
+    <div class="block">
+      <input type="submit" value="Categorize transactions" />
+      <a href="{% url money_views.views.account account.webapp_key %}">Back to account</a>
+    </div>
+  </form>
+{% endblock body %}
