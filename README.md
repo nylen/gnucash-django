@@ -85,9 +85,7 @@ Installation
     - Django development server: `http://localhost:8000/`
     - Apache and mod\_wsgi: `http://localhost/gnucash-django/`
 
-
- - **NOTE**: Even though all views are set up to require authentication, this
-   application has **NOT** been written with security in mind.  Therefore, it
-   is advisable to secure it using HTTPS and Apache authentication, or to
-   disallow public access to the application.
-
+**NOTE**: Even though all views are set up to require authentication, this
+application has **NOT** been written with security in mind.  Therefore, it is
+advisable to secure it using HTTPS and Apache authentication, or to disallow
+public access to the application.
