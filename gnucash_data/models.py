@@ -1,4 +1,5 @@
 import os
+import psutil
 import re
 import socket
 from decimal import Decimal
@@ -328,7 +329,6 @@ class Lock(models.Model):
 
   def __unicode__(self):
     try:
-      import psutil
       name = psutil.Process(int(self.process_id)).name
     except:
       name = 'unknown process'

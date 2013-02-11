@@ -3,3 +3,9 @@ settings.py
 settings.patch
 patch-settings.sh
 TODO
+
+# Virtualenv stuff
+/bin
+/include
+/lib
+/local

@@ -23,12 +23,10 @@ Features
 Requirements
 ------------
 
- - Django 1.3 or higher
-
  - A GnuCash file that uses a database backend (tested with MySQL; should work
    with Postgres or SQLite as well)
 
- - Python `dateutil` module installed
+ - `pip` installed (in Debian/Ubuntu: `sudo apt-get install python-pip`)
 
  - _(Optional)_ Python GnuCash API installed (currently this is only used in the
    code that imports QIF files)
@@ -42,6 +40,8 @@ Installation
 
         git clone git://github.com/nylen/gnucash-django.git
         cd gnucash-django
+
+ - Install dependencies: `pip install -r requirements.txt`
 
  - Copy `settings.example.py` to `settings.py` and fill in values for all
    places where the file contains three asterisks (`***`).  At this point
@@ -73,6 +73,10 @@ Installation
               Allow from all
             </Location>
 
+      You may also want to set up a baseline environment for mod\_wsgi as
+      described
+      [here](http://code.google.com/p/modwsgi/wiki/VirtualEnvironments#Baseline_Environment).
+
       More information about configuring mod\_wsgi is on the mod\_wsgi website:
       http://code.google.com/p/modwsgi/
 
@@ -80,6 +84,7 @@ Installation
    URLs:
     - Django development server: `http://localhost:8000/`
     - Apache and mod\_wsgi: `http://localhost/gnucash-django/`
+
 
  - **NOTE**: Even though all views are set up to require authentication, this
    application has **NOT** been written with security in mind.  Therefore, it
