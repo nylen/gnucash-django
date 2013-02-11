@@ -31,8 +31,6 @@ Requirements
  - _(Optional)_ Python GnuCash API installed (currently this is only used in the
    code that imports QIF files)
 
- - _(Optional)_ Python `psutil` module installed
-
 Installation
 ------------
 
@@ -55,9 +53,7 @@ Installation
    `./manage.py createsuperuser`.  This will be your login to the site.
 
  - There are two options for starting the application:
-
    1. Django development server: `./manage.py runserver`
-
    2. Configure Apache to host the application with mod\_wsgi.  Here is an
       example:
 
