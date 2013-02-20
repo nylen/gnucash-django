@@ -26,10 +26,17 @@ Requirements
  - A GnuCash file that uses a database backend (tested with MySQL; should work
    with Postgres or SQLite as well)
 
- - `pip` installed (in Debian/Ubuntu: `sudo apt-get install python-pip`)
+ - `pip` and `virtualenv` installed (in Debian/Ubuntu: `sudo apt-get install
+   python-pip`, then `sudo pip install virtualenv`)
 
  - _(Optional)_ Python GnuCash API installed (currently this is only used in the
    code that imports QIF files)
+
+   After you've followed the installation steps below, something like this
+   should work to make the GnuCash API visible to this application's virtual
+   environment:
+
+       ln -s /usr/local/lib/python2.7/dist-packages/gnucash/ lib/python2.7/gnucash
 
 Installation
 ------------
@@ -39,7 +46,10 @@ Installation
         git clone git://github.com/nylen/gnucash-django.git
         cd gnucash-django
 
- - Install dependencies: `pip install -r requirements.txt`
+ - Initialize `virtualenv` and install dependencies:
+
+        virtualenv .
+        pip install -r requirements.txt
 
  - Copy `settings.example.py` to `settings.py` and fill in values for all
    places where the file contains three asterisks (`***`).  At this point
