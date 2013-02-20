@@ -211,8 +211,14 @@ try:
       tx.update = u
       tx.save()
 
+  debug_print('Saving GnuCash session')
   session.save()
+  debug_print('Saved GnuCash session')
 
 finally:
+  debug_print('Ending GnuCash session')
   session.end()
+  debug_print('Destroying GnuCash session')
   session.destroy()
+
+debug_print('Done importing QIF(s)')
