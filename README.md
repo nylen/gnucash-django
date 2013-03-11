@@ -49,6 +49,7 @@ Installation
  - Initialize `virtualenv` and install dependencies:
 
         virtualenv .
+        . bin/activate
         pip install -r requirements.txt
 
  - Copy `settings.example.py` to `settings.py` and fill in values for all
