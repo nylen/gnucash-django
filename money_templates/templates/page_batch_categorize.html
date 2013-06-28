@@ -4,6 +4,10 @@
 
 {% block title %}Categorize multiple transactions{% endblock %}
 
+{% block scripts %}
+  <script type="text/javascript" src="{{ STATIC_URL }}use-select2.js"></script>
+{% endblock %}
+
 {% block body %}
   <div class="block block-first">
     <div class="note">
@@ -51,7 +55,7 @@
                   </span>
                 </div>
               </th>
-              <td>
+              <td class="change-account-container">
                 {{ f.errors }}
                 {{ f }}
               </td>
