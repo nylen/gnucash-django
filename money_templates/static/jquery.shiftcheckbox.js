@@ -5,6 +5,8 @@
  * Released under MIT license
  * For details see:
  * https://github.com/nylen/shiftcheckbox
+ *
+ * Requires jQuery v1.6 or higher.
  */
 
 (function($) {
@@ -20,6 +22,7 @@
     var $checkboxes;
     var $containersSelectAll;
     var $checkboxesSelectAll;
+    var $otherSelectAll;
     var $containersAll;
     var $checkboxesAll;
 
@@ -35,7 +38,12 @@
       $checkboxesSelectAll = $containersSelectAll
         .filter(':checkbox')
         .add($containersSelectAll.find(':checkbox'));
-      $containersSelectAll = $containersSelectAll.not(':checkbox').filter(function() {
+
+      $containersSelectAll = $containersSelectAll.not(':checkbox');
+      $otherSelectAll = $containersSelectAll.filter(function() {
+        return !$(this).find($checkboxesSelectAll).length;
+      });
+      $containersSelectAll = $containersSelectAll.filter(function() {
         return !!$(this).find($checkboxesSelectAll).length;
       }).each(function() {
         $(this).data('childCheckbox', $(this).find($checkboxesSelectAll)[0]);
@@ -59,12 +67,18 @@
 
     } else {
 
-      $checkboxesAll = this.filter(':checkbox').add($checkboxesSelectAll);
+      $checkboxesAll = this.filter(':checkbox');
 
     }
 
     if ($checkboxesSelectAll && !$checkboxesSelectAll.length) {
       $checkboxesSelectAll = false;
+    } else {
+      $checkboxesAll = $checkboxesAll.add($checkboxesSelectAll);
+    }
+
+    if ($otherSelectAll && !$otherSelectAll.length) {
+      $otherSelectAll = false;
     }
 
     if ($containersAll) {
@@ -113,6 +127,18 @@
         .filter(function() {
           return !$containersAll.find(this).length;
         }).bind('click' + ns, checkboxClicked);
+    }
+
+    if ($otherSelectAll) {
+      $otherSelectAll.bind('click' + ns, function() {
+        var checked;
+        if ($checkboxesSelectAll) {
+          checked = !!$checkboxesSelectAll.eq(0).attr('checked');
+        } else {
+          checked = !!$checkboxes.eq(0).attr('checked');
+        }
+        $checkboxesAll.attr('checked', !checked);
+      });
     }
 
     if (opts.checkboxSelector) {
