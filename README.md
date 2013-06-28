@@ -36,7 +36,7 @@ Requirements
    should work to make the GnuCash API visible to this application's virtual
    environment:
 
-       ln -s /usr/local/lib/python2.7/dist-packages/gnucash/ lib/python2.7/gnucash
+        ln -s /usr/local/lib/python2.7/dist-packages/gnucash/ lib/python2.7/gnucash
 
 Installation
 ------------
@@ -49,6 +49,7 @@ Installation
  - Initialize `virtualenv` and install dependencies:
 
         virtualenv .
+        . bin/activate
         pip install -r requirements.txt
 
  - Copy `settings.example.py` to `settings.py` and fill in values for all
@@ -83,8 +84,8 @@ Installation
       described
       [here](http://code.google.com/p/modwsgi/wiki/VirtualEnvironments#Baseline_Environment).
 
-      More information about configuring mod\_wsgi is on the mod\_wsgi website:
-      http://code.google.com/p/modwsgi/
+      More information about configuring mod\_wsgi is on the
+      [mod\_wsgi website](http://code.google.com/p/modwsgi/).
 
  - Browse to the site and log in as the superuser you created earlier.  Example
    URLs:
