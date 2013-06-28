@@ -1,19 +1,30 @@
 import datetime
+import itertools
+import operator
 import re
 from decimal import Decimal
 
 from django.db.models import F, Q, Count, Sum
 
 import settings
-from gnucash_data.models import Split, Lock, Rule, RuleAccount
+from gnucash_data.models import Split, Lock, Rule, RuleAccount, Transaction
 
 
 class TransactionSplitFilter():
   REGEX_CHARS = '^$()[]?*+|\\'
 
-  def __init__(self, account):
-    self.account = account
-    self.splits = account.split_set.select_related(depth=3)
+  def __init__(self, accounts):
+    self.accounts = accounts
+    self.splits = reduce(operator.or_,
+        (a.split_set.select_related(depth=3) for a in accounts))
+    if len(self.accounts) > 1:
+      Transaction.cache_from_splits(self.splits)
+      exclude_split_guids = []
+      account_guids = [a.guid for a in self.accounts]
+      for s in self.splits:
+        if any(os != s and os.account in self.accounts for os in s.transaction.splits):
+          exclude_split_guids.append(s.guid)
+      self.splits = self.splits.exclude(guid__in=exclude_split_guids)
     self.filtered_splits = self.splits
     self.any_filters_applied = False
     self.one_opposing_account_filter_applied = False
@@ -21,7 +32,7 @@ class TransactionSplitFilter():
   def filter_splits(self, data):
     self.opposing_account_guids = data['opposing_accounts']
     if self.opposing_account_guids and 'all' not in self.opposing_account_guids:
-      if self.account.guid in self.opposing_account_guids:
+      if any(a.guid in self.opposing_account_guids for a in self.accounts):
         raise ValueError('Tried to filter transactions on account = opposing_account')
       self.any_filters_applied = True
       if len(self.opposing_account_guids) == 1:
@@ -74,10 +85,10 @@ class TransactionSplitFilter():
     return False
 
   def get_merchants_info(self, opposing_account):
-    splits = self.account.split_set \
+    opposing_splits = self.splits \
       .filter(transaction__split__account=opposing_account) \
       .select_related(depth=3)
-    groups = splits.values('transaction__description', 'value_denom') \
+    groups = opposing_splits.values('transaction__description', 'value_denom') \
       .annotate(count=Count('guid'), value_num=Sum('value_num')) \
       .order_by('-count', 'value_denom', 'value_num', 'transaction__description')
 
@@ -119,7 +130,7 @@ class RuleHelper():
   @staticmethod
   def apply(**kwargs):
     splits           = kwargs['splits']
-    account          = splits.account
+    accounts         = splits.accounts
     tx_desc          = kwargs.get('tx_desc', None)
     is_regex         = kwargs.get('is_regex', False)
     opposing_account = kwargs['opposing_account']
@@ -154,7 +165,9 @@ class RuleHelper():
       is_regex = splits.tx_desc_is_regex
 
     tx_guids = filtered_splits.distinct().values('transaction__guid')
-    splits_real = Split.objects.filter(transaction__guid__in=tx_guids).exclude(account=account)
+    splits_real = Split.objects \
+        .filter(transaction__guid__in=tx_guids) \
+        .exclude(account__guid__in=[a.guid for a in accounts])
 
     # ugh
     if min_amount: min_amount -= Decimal('1e-8')
@@ -180,23 +193,33 @@ class RuleHelper():
     if tx_count > 0:
       Lock.obtain()
       try:
-        Split.objects.filter(guid__in=split_guids).update(account=opposing_account)
+        splits = Split.objects.filter(guid__in=split_guids)
+        if opposing_account is None:
+          tx_guids = list(splits.values_list('transaction__guid', flat=True))
+          Transaction.objects.filter(guid__in=tx_guids).delete()
+          Split.objects.filter(guid__in=split_guids).delete()
+        else:
+          splits.update(account=opposing_account)
         modified_tx_count = tx_count
       finally:
         Lock.release()
 
     if save_rule and tx_desc:
       rule = Rule()
-      rule.opposing_account_guid = opposing_account.guid
+      if opposing_account:
+        rule.opposing_account_guid = opposing_account.guid
+      else:
+        rule.opposing_account_guid = None
       rule.match_tx_desc = tx_desc
       rule.is_regex = is_regex
       if min_amount: rule.min_amount = min_amount
       if max_amount: rule.max_amount = max_amount
       rule.save()
 
-      rule_account = RuleAccount()
-      rule_account.rule = rule
-      rule_account.account_guid = account.guid
-      rule_account.save()
+      for a in accounts:
+        rule_account = RuleAccount()
+        rule_account.rule = rule
+        rule_account.account_guid = a.guid
+        rule_account.save()
 
     return modified_tx_count

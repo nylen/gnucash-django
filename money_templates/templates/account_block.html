@@ -1,8 +1,8 @@
 {% load template_extras %}
-<div class="block{% if account.webapp_key == 0 and showing_index %} block-first{% endif %}">
+<div class="block{% if account.webapp_key == '0' and showing_index %} block-first{% endif %}">
   <table class="account-block">
     <tr>
-      <th>Account:</th>
+      <th>Account{% if accounts|length > 1 %} {{ forloop.counter }}{% endif %}:</th>
       <td>
         {% if showing_index %}
           <a href="{% url money_views.views.account account.webapp_key %}">{{ account.description_or_name }}</a>

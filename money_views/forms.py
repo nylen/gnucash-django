@@ -1,3 +1,5 @@
+import itertools
+
 from django    import forms
 from django.db import connections
 
@@ -5,7 +7,7 @@ from gnucash_data.models import Account
 
 
 DEFAULT_FILTER_ACCOUNT_CHOICES = [('all', '(all)')]
-DEFAULT_MODIFY_ACCOUNT_CHOICES = [('', '(no change)')]
+DEFAULT_MODIFY_ACCOUNT_CHOICES = [('', '(no change)'), ('DELETE', '(DELETE)')]
 
 
 class FilterForm(forms.Form):
@@ -71,9 +73,9 @@ class BatchModifyForm(forms.Form):
 
 
 class AccountChoices():
-  def __init__(self, account, **kwargs):
+  def __init__(self, accounts, **kwargs):
     cursor = connections['gnucash'].cursor()
-    cursor.execute('''
+    sql = '''
         SELECT a.guid,
 
           CASE
@@ -97,21 +99,26 @@ class AccountChoices():
           INNER JOIN splits s2
           ON s2.tx_guid = t.guid
 
-          WHERE s.account_guid = %s
-          AND s2.account_guid <> %s
+          WHERE s.account_guid IN (%s)
+          AND s2.account_guid NOT IN (%s)
 
           GROUP BY 1
         ) s
         ON s.account_guid = a.guid
 
         WHERE a.account_type <> 'ROOT'
-      ''', [account.guid, account.guid])
+      '''
+
+    params = ', '.join('%s' for a in accounts)
+    sql = sql % (params, params)
+    account_guids = [a.guid for a in accounts]
+    cursor.execute(sql, account_guids + account_guids)
 
     filter_all_account_choices = []
     filter_account_choices = []
     modify_account_choices = []
 
-    exclude_guids = [account.guid]
+    exclude_guids = account_guids
     if 'exclude' in kwargs:
       exclude_guids.append(kwargs['exclude'].guid)
 

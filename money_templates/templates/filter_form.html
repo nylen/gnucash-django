@@ -25,5 +25,5 @@
     {% endfor %}
   </table>
   <input type="submit" value="Apply" />
-  <a href="{% url money_views.views.account account.webapp_key %}">clear filters</a>
+  <a href="{% url money_views.views.account current_accounts_key %}">clear filters</a>
 </form>

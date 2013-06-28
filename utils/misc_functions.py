@@ -25,3 +25,6 @@ def format_date(date):
 
 def format_date_time(date):
   return date.strftime('%b %d, %Y %I:%M:%S %p')
+
+def index1_in(value, coll):
+  return coll.index(value) + 1

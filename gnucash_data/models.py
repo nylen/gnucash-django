@@ -184,7 +184,7 @@ class Account(models.Model):
   @property
   def webapp_key(self):
     try:
-      return settings.ACCOUNTS_LIST.index(self.path)
+      return unicode(settings.ACCOUNTS_LIST.index(self.path))
     except ValueError:
       return self.guid
 

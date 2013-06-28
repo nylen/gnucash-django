@@ -50,6 +50,15 @@ table.transactions .description {
   font-size: 85%;
   color: #777;
 }
+table.transactions .account-index {
+  color: #555;
+  padding: 1px 3px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
 table.transactions .memo {
   padding: 0 16px;
   font-size: 70%;

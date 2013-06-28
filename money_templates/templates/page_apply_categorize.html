@@ -12,12 +12,12 @@
   <div class="block">
     <ul class="links">
       <li>
-        <a href="{% url money_views.views.account account.webapp_key %}">
+        <a href="{% url money_views.views.account current_accounts_key %}">
           Back to account
         </a>
       </li>
       <li>
-        <a href="{% url money_views.views.batch_categorize account.webapp_key %}">
+        <a href="{% url money_views.views.batch_categorize current_accounts_key %}">
           Categorize more transactions
         </a>
       </li>

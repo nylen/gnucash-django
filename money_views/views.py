@@ -14,12 +14,18 @@ import settings
 from gnucash_data.models import Account, Transaction
 
 
+def get_accounts(key):
+  return [get_account(k) for k in key.split('+')]
+
 def get_account(key):
   try:
     path = settings.ACCOUNTS_LIST[int(key)]
     return Account.from_path(path)
   except ValueError:
     return Account.get(key)
+
+def accounts_key(accounts):
+  return '+'.join(a.webapp_key for a in accounts)
 
 
 @login_required
@@ -40,11 +46,11 @@ def index(request):
 
 @login_required
 def any_account(request):
-  key = request.GET.get('select_account', '')
-  if key:
+  key = request.GET.getlist('accounts')
+  if len(key):
     return redirect(reverse(
       'money_views.views.account',
-      kwargs={'key': request.GET.get('select_account', '')}))
+      kwargs={'key': '+'.join(key)}))
   else:
     return redirect('money_views.views.index')
 
@@ -53,8 +59,8 @@ def any_account(request):
 def account(request, key):
   template = loader.get_template('page_account_details.html')
 
-  account = get_account(key)
-  splits = filters.TransactionSplitFilter(account)
+  accounts = get_accounts(key)
+  splits = filters.TransactionSplitFilter(accounts)
 
   all_accounts = Account.get_all()
   all_accounts.sort(key=lambda a: a.path)
@@ -65,7 +71,7 @@ def account(request, key):
       'name': a.name
     }
 
-  choices = forms.AccountChoices(account)
+  choices = forms.AccountChoices(accounts)
 
   filter_form = forms.FilterForm(choices, request.GET)
   if filter_form.is_valid():
@@ -99,13 +105,16 @@ def account(request, key):
     'regex_chars_js': json.dumps(filters.TransactionSplitFilter.REGEX_CHARS),
     'all_accounts': all_accounts,
     'accounts_js': json.dumps(all_accounts_dict),
-    'current_account_js': json.dumps(account.guid),
+    'current_accounts_js': json.dumps([a.guid for a in accounts]),
     'num_transactions_js': json.dumps(page.paginator.count),
     'api_functions_js': json.dumps(api.function_urls.urls_dict),
-    'account': account,
+    'accounts': accounts,
+    'current_accounts_key': accounts_key(accounts),
+    'account': accounts[0],
     'page': page,
     'filter_form': filter_form,
     'modify_form': modify_form,
+    'total_balance': sum(a.balance for a in accounts),
   })
   return HttpResponse(template.render(c))
 
@@ -114,17 +123,18 @@ def account(request, key):
 def modify(request, key):
   template = loader.get_template('page_modify.html')
 
-  account = get_account(key)
-  splits = filters.TransactionSplitFilter(account)
+  accounts = get_accounts(key)
+  splits = filters.TransactionSplitFilter(accounts)
 
   errors = False
 
-  choices = forms.AccountChoices(account)
+  choices = forms.AccountChoices(accounts)
 
   opposing_account_guid = request.POST['change_opposing_account']
   opposing_account = None
   try:
-    opposing_account = Account.get(opposing_account_guid)
+    if opposing_account_guid != 'DELETE':
+      opposing_account = Account.get(opposing_account_guid)
   except Account.DoesNotExist:
     errors = "Account '%s' not found." % opposing_account_guid
 
@@ -159,7 +169,8 @@ def modify(request, key):
   hidden_filter_form = forms.HiddenFilterForm(choices, form_data)
 
   c = RequestContext(request, {
-    'account': account,
+    'accounts': accounts,
+    'current_accounts_key': accounts_key(accounts),
     'opposing_account': opposing_account,
     'hidden_filter_form': hidden_filter_form,
     'errors': errors,
@@ -172,18 +183,19 @@ def modify(request, key):
 def batch_categorize(request, key):
   template = loader.get_template('page_batch_categorize.html')
 
-  account = get_account(key)
-  splits = filters.TransactionSplitFilter(account)
+  accounts = get_accounts(key)
+  splits = filters.TransactionSplitFilter(accounts)
 
   imbalance = Account.from_path('Imbalance-USD')
-  choices = forms.AccountChoices(account, exclude=imbalance)
+  choices = forms.AccountChoices(accounts, exclude=imbalance)
 
   merchants = splits.get_merchants_info(imbalance)
   no_merchants = (len(merchants) == 0)
   batch_modify_form = forms.BatchModifyForm(choices, merchants)
 
   c = RequestContext(request, {
-    'account': account,
+    'accounts': accounts,
+    'current_accounts_key': accounts_key(accounts),
     'batch_modify_form': batch_modify_form,
     'no_merchants': no_merchants,
     'imbalance': imbalance,
@@ -195,11 +207,11 @@ def batch_categorize(request, key):
 def apply_categorize(request, key):
   template = loader.get_template('page_apply_categorize.html')
 
-  account = get_account(key)
-  splits = filters.TransactionSplitFilter(account)
+  accounts = get_accounts(key)
+  splits = filters.TransactionSplitFilter(accounts)
 
   imbalance = Account.from_path('Imbalance-USD')
-  choices = forms.AccountChoices(account, exclude=imbalance)
+  choices = forms.AccountChoices(accounts, exclude=imbalance)
 
   merchants = splits.get_merchants_info(imbalance)
   batch_modify_form = forms.BatchModifyForm(choices, merchants, request.POST)
@@ -216,14 +228,18 @@ def apply_categorize(request, key):
       opposing_account_guid = batch_modify_form.cleaned_data['merchant_' + str(i)]
       if opposing_account_guid:
         rule_count += 1
+        opposing_account = None
+        if opposing_account_guid != 'DELETE':
+          opposing_account = Account.get(opposing_account_guid)
         modified_tx_count += filters.RuleHelper.apply(
           splits=splits,
           tx_desc=tx_desc,
-          opposing_account=Account.get(opposing_account_guid),
+          opposing_account=opposing_account,
           save_rule=True)
 
   c = RequestContext(request, {
-    'account': account,
+    'accounts': accounts,
+    'current_accounts_key': accounts_key(accounts),
     'modified_tx_count': modified_tx_count,
     'rule_count': rule_count,
   })
