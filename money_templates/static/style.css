@@ -174,12 +174,15 @@ table.form-table select {
 #form-filters tr.field-opposing_account {
   display: none;
 }
-#form-filters tr.field-opposing_accounts ul {
+#form-filters tr.field-opposing_accounts ul, #select-accounts {
   list-style: none outside;
   padding: 0;
   margin: 0;
   max-height: 20em;
   overflow-y: scroll;
+}
+#select-accounts li:hover {
+  background: #ddd;
 }
 
 #clear-filters {

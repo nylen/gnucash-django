@@ -31,6 +31,7 @@ class Account(models.Model):
   parent_guid = models.CharField(max_length=32, null=True)
   type = models.CharField(max_length=2048, db_column='account_type')
   description = models.CharField(max_length=2048)
+  placeholder = models.BooleanField()
 
   _balances = {}
   _root = None

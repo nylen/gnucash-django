@@ -2,30 +2,36 @@
 
 {% block title %}Account balances{% endblock %}
 
+{% block scripts %}
+  <script type="text/javascript" src="{{ STATIC_URL }}page_index.js"></script>
+{% endblock %}
+
 {% block body %}
   {% for account in accounts %}
     {% include "account_block.html" %}
   {% endfor %}
   <div class="block">
+    Other account:
     <form action="{% url money_views.views.any_account %}" method="get">
-      <table id="index-account-select">
-        <tr>
-          <td class="left">
-            <label for="select-account">Other account:</label>
-          </td>
-          <td class="middle">
-            <select name="select_account" id="select-account">
-              <option value="" selected="selected">(Choose an account)</option>
-              {% for account in all_accounts %}
-                <option value="{{ account.guid }}">{{ account.path }}</option>
-              {% endfor %}
-            </select>
-          </td>
-          <td class="right">
-            <input type="submit" value="Go" />
-          </td>
-        </tr>
-      </table>
+      <ul id="select-accounts">
+        <li>
+          <label for="accounts-all">
+            <input type="checkbox" name="accounts" value="all" id="accounts-all" />
+            (all)
+          </label>
+        </li>
+        {% for account in all_accounts %}
+          {% if not account.placeholder %}
+            <li>
+              <label for="account-{{ account.guid }}">
+                <input type="checkbox" name="accounts" value="{{ account.webapp_key }}" id="account-{{ account.guid }}" />
+                <a href="{% url money_views.views.account account.webapp_key %}">{{ account.path }}</a>
+              </label>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+      <input type="submit" value="Go" />
     </form>
   </div>
 {% endblock %}
