@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 def is_quoted_string(s):
-  return (len(s) > 0 and s[0] == s[-1] and s[0] in ('"', "'"))
+    return (len(s) > 0 and s[0] == s[-1] and s[0] in ('"', "'"))
 
 @register.tag
 def query_string(parser, token):
@@ -29,10 +29,14 @@ def query_string(parser, token):
     http://www.url.com/{% query_string "page=page_obj.number" "sort" %}
 
     """
-    try:
-        tag_name, add_string, remove_string = token.split_contents()
-    except ValueError:
-        raise template.TemplateSyntaxError, "%r tag requires two arguments" % token.contents.split()[0]
+    pieces = token.split_contents()
+    tag_name = pieces[0]
+    add_string = "''"
+    remove_string = "''"
+    if len(pieces) > 1:
+        add_string = pieces[1]
+    if len(pieces) > 2:
+        remove_string = pieces[2]
     if not is_quoted_string(add_string) or not is_quoted_string(remove_string):
         raise template.TemplateSyntaxError, "%r tag's argument should be in quotes" % tag_name
 
@@ -76,7 +80,10 @@ def get_query_string(p, new_params, remove, context):
                 pass
             pairs.append(u'%s=%s' % (k, v))
 
-    return mark_safe('?' + '&amp;'.join(pairs).replace(' ', '%20'))
+    if len(pairs) > 0:
+        return mark_safe('?' + '&amp;'.join(pairs).replace(' ', '%20'))
+    else:
+        return mark_safe('')
 
 
 # Adapted from lib/utils.py
