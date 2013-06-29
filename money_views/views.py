@@ -120,6 +120,36 @@ def account(request, key):
 
 
 @login_required
+def account_csv(request, key):
+  accounts = get_accounts(key)
+  splits = filters.TransactionSplitFilter(accounts)
+
+  choices = forms.AccountChoices(accounts)
+
+  filter_form = forms.FilterForm(choices, request.GET)
+  if filter_form.is_valid():
+    splits.filter_splits(filter_form.cleaned_data)
+
+  splits.order_filtered_splits()
+
+  res = HttpResponse(content_type='text/csv')
+  res['Content-Disposition'] = 'attachment; filename=accounts.csv'
+
+  res.write('Account,OpposingAccount,Description,Memo,Amount\n')
+
+  for s in splits.filtered_splits:
+    res.write(','.join(f.replace(',', ';').replace('"', '').replace('\n', ' ') for f in [
+      s.account.description_or_name,
+      s.opposing_account.description_or_name,
+      s.transaction.description,
+      s.memo,
+      str(s.amount)
+    ]) + '\n')
+
+  return res
+
+
+@login_required
 def modify(request, key):
   template = loader.get_template('page_modify.html')
 
