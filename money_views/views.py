@@ -132,17 +132,31 @@ def account_csv(request, key):
 
   splits.order_filtered_splits()
 
-  res = HttpResponse(content_type='text/csv')
-  res['Content-Disposition'] = 'attachment; filename=accounts.csv'
+  if 'inline' in request.GET:
+    res = HttpResponse(content_type='text/plain')
+  else:
+    res = HttpResponse(content_type='text/csv')
+    res['Content-Disposition'] = 'attachment; filename=accounts.csv'
 
-  res.write('Account,OpposingAccount,Description,Memo,Amount\n')
+  res.write('Account,OpposingAccount,Date,Description,Memo,Amount\n')
 
   for s in splits.filtered_splits:
+    # Determine the best memo to show, if any
+    memo = ''
+    if s.memo_is_id_or_blank:
+      for memo_split in s.opposing_split_set:
+        if not memo_split.memo_is_id_or_blank:
+          memo = memo_split.memo
+          break
+    else:
+      memo = s.memo
+    # Send CSV row
     res.write(','.join(f.replace(',', ';').replace('"', '').replace('\n', ' ') for f in [
       s.account.description_or_name,
       s.opposing_account.description_or_name,
+      s.transaction.post_date.strftime('%m/%d/%Y'),
       s.transaction.description,
-      s.memo,
+      memo,
       str(s.amount)
     ]) + '\n')
 
