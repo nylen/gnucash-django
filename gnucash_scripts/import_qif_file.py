@@ -82,6 +82,7 @@ try:
     .filter(account_guid=acct_guid).select_related().distinct('rule__id')]
 
   updated = False
+  imported_transactions = []
 
   for fn in sys.argv[2:]:
     if fn.upper() == 'DEBUG':
@@ -97,8 +98,6 @@ try:
           balance = Decimal(line)
     except:
       pass
-
-    imported_transactions = []
 
     qif = open(fn, 'r')
     txinfo = {}
