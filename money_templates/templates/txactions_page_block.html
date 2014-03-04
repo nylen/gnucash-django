@@ -3,10 +3,10 @@
   Transactions {{ page.start_index }}-{{ page.end_index }} of {{ page.paginator.count }}
   (page {{ page.number }} of {{ page.paginator.num_pages }})
   {% if page.has_previous %}
-    | <a href="{% query_string '' 'page' %}">first</a>
-    | <a href="{% query_string 'page=page.previous_page_number' '' %}">previous</a>
+    | <a href="{{ request.path }}{% query_string '' 'page' %}">first</a>
+    | <a href="{{ request.path }}{% query_string 'page=page.previous_page_number' '' %}">previous</a>
   {% endif %}
   {% if page.has_next %}
-    | <a href="{% query_string 'page=page.next_page_number' '' %}">next</a>
+    | <a href="{{ request.path }}{% query_string 'page=page.next_page_number' '' %}">next</a>
   {% endif %}
 </div>
