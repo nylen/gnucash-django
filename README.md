@@ -15,10 +15,19 @@ Features
  - Change the opposing account of any transaction and create rules for future
    transactions
 
- - Import QIF files and automatically categorize transactions according to the
-   saved rules
+ - Import JSON files produced by my
+   [`banker`](https://github.com/nylen/node-banker) transaction downloader and
+   automatically categorize transactions according to the saved rules (can also
+   import QIF files)
 
- - More features planned (graphs, budgeting, etc.)
+ - Similarly, import QIF files
+
+Wishlist
+--------
+
+ - Graphs, budgeting, etc.
+
+ - Better management of rules and categorization
 
 Requirements
 ------------
