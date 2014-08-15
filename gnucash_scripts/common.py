@@ -9,8 +9,10 @@ def get_account_by_path(acct, path):
   return acct
 
 def get_account_by_guid(acct, guid):
-  for ptr in acct.get_descendants():
-    a = Account(instance=ptr)
+  for a in acct.get_descendants():
+    if not isinstance(a, Account):
+      # Older versions of GnuCash just used a pointer to an Account here.
+      a = Account(instance=a)
     if a.GetGUID().to_string() == guid:
       return a
   return None
