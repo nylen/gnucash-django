@@ -66,6 +66,10 @@ Installation
    you'll need to set up a MySQL database and username, if you haven't done so
    already.  Currently this must be done manually.
 
+   You can use this command to generate a `SECRET_KEY` value:
+
+        python -c 'import random; r=random.SystemRandom(); print "".join([r.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(50)])'
+
  - Create the database structure: `./manage.py syncdb`
 
  - In the previous step, you should have been prompted to create a Django
