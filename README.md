@@ -17,10 +17,9 @@ Features
 
  - Import JSON files produced by my
    [`banker`](https://github.com/nylen/node-banker) transaction downloader and
-   automatically categorize transactions according to the saved rules (can also
-   import QIF files)
+   automatically categorize transactions according to the saved rules
 
- - Similarly, import QIF files
+ - Similarly, import QIF files and categorize transactions
 
 Wishlist
 --------
