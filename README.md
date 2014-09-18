@@ -70,14 +70,14 @@ Installation
 
         python -c 'import random; r=random.SystemRandom(); print "".join([r.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(50)])'
 
- - Create the database structure: `./manage.py syncdb`
+ - Create the database structure: `python manage.py syncdb`
 
  - In the previous step, you should have been prompted to create a Django
    superuser.  If not, or you didn't create one, do that now by running
-   `./manage.py createsuperuser`.  This will be your login to the site.
+   `python manage.py createsuperuser`.  This will be your login to the site.
 
  - There are two options for starting the application:
-   1. Django development server: `./manage.py runserver`
+   1. Django development server: `python manage.py runserver`
    2. Configure Apache to host the application with mod\_wsgi.  Here is an
       example:
 
