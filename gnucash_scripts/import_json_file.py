@@ -24,6 +24,7 @@ import settings # only works due to path fuckery above
 setup_environ(settings)
 
 from gnucash_data import models
+from utils.AsciiDammit import asciiDammit
 
 # make sure we can begin a session
 models.Lock.check_can_obtain()
@@ -135,7 +136,7 @@ try:
               trans = Transaction(book)
               trans.BeginEdit()
               trans.SetCurrency(USD)
-              trans.SetDescription(str(txinfo['description']))
+              trans.SetDescription(str(asciiDammit(txinfo['description'])))
               trans.SetDate(
                 txinfo['date'].day,
                 txinfo['date'].month,
@@ -145,7 +146,7 @@ try:
               split1.SetParent(trans)
               split1.SetAccount(acct)
               if txinfo.has_key('memo'):
-                split1.SetMemo(str(txinfo['memo']))
+                split1.SetMemo(str(asciiDammit(txinfo['memo'])))
               # The docs say both of these are needed:
               # http://svn.gnucash.org/docs/HEAD/group__Transaction.html
               split1.SetValue(gnc_amount)
