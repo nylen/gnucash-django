@@ -97,10 +97,13 @@ try:
 
         for txinfo in acct_data['transactions']:
           updated = True
-          txinfo['date'] = dateparser.parse(txinfo['date']).date() # treats as MM/DD/YYYY (good)
-          txinfo['amount'] = Decimal(txinfo['amount'])
-          if not txinfo.has_key('description'):
-            txinfo['description'] = ''
+
+          txinfo['date']        = dateparser.parse(txinfo['date']).date() # treats as MM/DD/YYYY (good)
+          txinfo['amount']      = Decimal(txinfo['amount'])
+          txinfo['description'] = asciiDammit(txinfo.get('description', ''))
+
+          if txinfo.has_key('memo'):
+            txinfo['memo'] = asciiDammit(txinfo['memo'])
 
           if models.ImportedTransaction.objects.filter(source_tx_id=txinfo['sourceId']).count():
             debug_print('Not adding duplicate transaction %s'
@@ -136,7 +139,7 @@ try:
               trans = Transaction(book)
               trans.BeginEdit()
               trans.SetCurrency(USD)
-              trans.SetDescription(str(asciiDammit(txinfo['description'])))
+              trans.SetDescription(str(txinfo['description']))
               trans.SetDate(
                 txinfo['date'].day,
                 txinfo['date'].month,
@@ -146,7 +149,7 @@ try:
               split1.SetParent(trans)
               split1.SetAccount(acct)
               if txinfo.has_key('memo'):
-                split1.SetMemo(str(asciiDammit(txinfo['memo'])))
+                split1.SetMemo(str(txinfo['memo']))
               # The docs say both of these are needed:
               # http://svn.gnucash.org/docs/HEAD/group__Transaction.html
               split1.SetValue(gnc_amount)
