@@ -1,0 +1,4 @@
+--ignore-dir=bin
+--ignore-dir=include
+--ignore-dir=lib
+--ignore-dir=local
