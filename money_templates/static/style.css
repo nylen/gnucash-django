@@ -39,6 +39,9 @@ table.account-block th {
   padding-right: 4px;
   text-align: left;
 }
+.account-balance-info {
+  cursor: pointer;
+}
 
 table.transactions .date {
   text-align: left;

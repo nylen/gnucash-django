@@ -18,19 +18,21 @@
     <tr>
       <th>Balance:</th>
       <td>
-        {{ account.balance|format_dollar_amount_neg }}
-        {% if account.balance == account.last_update.balance %}
-          <i class="balance-match icon-ok" title="Balance matches"></i>
-        {% else %}
-          {% if account.has_updates %}
-            {% if account.last_update.balance == None %}
-              <span class="balance-unknown" title="Balance unverified">?</span>
-            {% else %}
-              <i class="balance-mismatch icon-remove"
-                title="Balance does not match (source: {{ account.last_update.balance|format_dollar_amount }})"></i>
+        <span class="account-balance-info">
+          {{ account.balance|format_dollar_amount_neg }}
+          {% if account.balance == account.last_update.balance %}
+            <i class="balance-title balance-match icon-ok" title="Balance matches source account"></i>
+          {% else %}
+            {% if account.has_updates %}
+              {% if account.last_update.balance == None %}
+                <span class="balance-title balance-unknown" title="Balance unverified">?</span>
+              {% else %}
+                <i class="balance-title balance-mismatch icon-remove"
+                  title="Balance does not match (source: {{ account.last_update.balance|format_dollar_amount }})"></i>
+              {% endif %}
             {% endif %}
           {% endif %}
-        {% endif %}
+        </span>
       </td>
     </tr>
     {% if account.has_updates %}
