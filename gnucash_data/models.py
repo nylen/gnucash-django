@@ -1,3 +1,5 @@
+import errno
+import hashlib
 import os
 import psutil
 import re
@@ -237,6 +239,9 @@ class Transaction(models.Model):
   def __unicode__(self):
     return '%s | %s' % (self.post_date, self.description)
 
+  def attach_file(self, f):
+    return File._new_with_transaction(f, self)
+
   @property
   def any_split_has_memo(self):
     for split in self.splits:
@@ -372,6 +377,74 @@ class Lock(models.Model):
     if n != 1:
       raise IOError('Expected 1 lock; found %i' % n)
     lock.delete()
+
+
+class File(models.Model):
+  hash = models.CharField(max_length=64)
+  filename = models.CharField(max_length=255)
+  transaction = models.ForeignKey(Transaction, db_column='tx_guid')
+
+  _path = os.path.abspath(os.path.join(
+    os.path.dirname(__file__),
+    'static',
+    'upload'
+  ))
+
+  class Meta:
+    db_table = 'files'
+    ordering = ['transaction', 'filename']
+
+  @property
+  def path(self):
+    return os.path.join(File._path, self.hash, self.filename)
+
+  @staticmethod
+  def _new_with_transaction(f, transaction):
+    # f is a Django UploadedFile
+
+    hasher = hashlib.sha256()
+    for chunk in f.chunks():
+      hasher.update(chunk)
+    h = hasher.hexdigest()
+
+    test1 = File.objects.filter(hash=h)
+    test2 = test1.filter(transaction=transaction)
+
+    if test2.count() > 0:
+      # This transaction already has the given file attached.
+      return test2.get()
+
+    if test1.count() > 0:
+      # Another transaction already has the given file attached.
+      other_file = test1[0]
+      this_file = File(
+        hash=other_file.hash,
+        filename=other_file.filename,
+        transaction=transaction
+      )
+      this_file.save()
+      return this_file
+
+    # Save this file to the filesystem and the database.
+
+    this_file = File(
+      hash=h,
+      filename=f.name,
+      transaction=transaction
+    )
+
+    try:
+      os.makedirs(os.path.dirname(this_file.path))
+    except OSError as e:
+      if e.errno != errno.EEXIST:
+        raise
+
+    with open(this_file.path, 'wb') as w:
+      for chunk in f.chunks():
+        w.write(chunk)
+
+    this_file.save()
+    return this_file
 
 
 class Rule(models.Model):

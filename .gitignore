@@ -9,3 +9,6 @@ TODO
 /include
 /lib
 /local
+
+# Files attached to transactions
+gnucash_data/static/upload/
