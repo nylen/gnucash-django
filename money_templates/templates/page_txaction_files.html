@@ -1,0 +1,28 @@
+{% extends "page_base.html" %}
+
+{% load template_extras %}
+
+{% block title %}
+  Transaction attachments - {{ transaction }}
+{% endblock %}
+
+{% block scripts %}
+  <script type="text/javascript" src="{{ STATIC_URL }}page_txaction_files.js"></script>
+{% endblock %}
+
+{% block body %}
+  <div class="block block-first">
+    {{ transaction.post_date|format_date }} <strong>{{ transaction.description }}</strong><br />
+    This transaction has {{ transaction.file_set.count }}
+    attachment{{ transaction.file_set.count|pluralize }}.
+    <a class="close-window no-ul" href="#">
+      <i class="icon-remove"></i>
+    </a>
+  </div>
+  {% for file in transaction.file_set.all %}
+    <div class="block">
+      {{ file.filename }}<br />
+      <img class="auto-resize" src="{{ STATIC_URL }}{{ file.web_path }}" />
+    </div>
+  {% endfor %}
+{% endblock %}

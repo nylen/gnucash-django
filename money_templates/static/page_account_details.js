@@ -155,7 +155,7 @@ $(function() {
       .focusselect();
   });
 
-  $('table.transactions a.search').click(function(e) {
+  $('table.transactions .no-events').click(function(e) {
     e.stopPropagation();
     return true;
   });

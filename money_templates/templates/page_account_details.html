@@ -84,10 +84,16 @@
               <span class="account-index" title="{{ split.account.description_or_name }}">{{ split.account|index1_in:accounts }}</span>
             {% endif %}
             {{ split.transaction.description }}
-            <a title="Search Google" target="_blank" class="transaction-control search no-ul"
+            <a title="Search Google" target="_blank" class="transaction-control search no-ul no-events"
               href="http://www.google.com/search?q={{ split.transaction.description|urlencode }}">
 
               <i class="icon-search"></i>
+            </a>
+            <a title="Manage files" target="_blank" class="transaction-control manage-files no-ul no-events"
+              href="{% url money_views.views.transaction_files split.transaction.guid %}">
+
+              {{ split.transaction.file_set.count }}
+              <i class="icon-file-alt"></i>
             </a>
             {% if not split.transaction.any_split_has_memo %}
               <i class="transaction-control add-memo icon-edit" title="Add memo"></i>

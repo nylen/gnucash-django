@@ -395,7 +395,11 @@ class File(models.Model):
     ordering = ['transaction', 'filename']
 
   @property
-  def path(self):
+  def web_path(self):
+    return 'upload/%s/%s' % (self.hash, self.filename)
+
+  @property
+  def abs_path(self):
     return os.path.join(File._path, self.hash, self.filename)
 
   @staticmethod
@@ -434,12 +438,12 @@ class File(models.Model):
     )
 
     try:
-      os.makedirs(os.path.dirname(this_file.path))
+      os.makedirs(os.path.dirname(this_file.abs_path))
     except OSError as e:
       if e.errno != errno.EEXIST:
         raise
 
-    with open(this_file.path, 'wb') as w:
+    with open(this_file.abs_path, 'wb') as w:
       for chunk in f.chunks():
         w.write(chunk)
 

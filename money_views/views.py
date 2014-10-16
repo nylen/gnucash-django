@@ -288,3 +288,13 @@ def apply_categorize(request, key):
     'rule_count': rule_count,
   })
   return HttpResponse(template.render(c))
+
+@login_required
+def transaction_files(request, guid):
+  template = loader.get_template('page_txaction_files.html')
+  transaction = Transaction.objects.get(guid=guid)
+
+  c = RequestContext(request, {
+    'transaction': transaction
+  })
+  return HttpResponse(template.render(c))
