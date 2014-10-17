@@ -4,7 +4,7 @@
     <tr>
       <th>Account{% if accounts|length > 1 %} {{ forloop.counter }}{% endif %}:</th>
       <td>
-        {% if showing_index %}
+        {% if showing_index or accounts|length > 1 %}
           <a href="{% url money_views.views.account account.webapp_key %}">{{ account.description_or_name }}</a>
         {% else %}
           {{ account.description_or_name }}
