@@ -25,4 +25,13 @@
       <img class="auto-resize" src="{{ STATIC_URL }}{{ file.web_path }}" />
     </div>
   {% endfor %}
+  <div class="block">
+    <form method="post" enctype="multipart/form-data" action="{% url money_views.views.transaction_upload_file transaction.guid %}">
+      Upload image:<br />
+      {# http://stackoverflow.com/a/12673480/106302 #}
+      <input type="file" name="file" accept="image/*" /><br />
+      <input type="submit" value="Upload" />
+      {% csrf_token %}
+    </form>
+  </div>
 {% endblock %}
