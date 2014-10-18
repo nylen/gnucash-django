@@ -1,13 +1,17 @@
 import errno
 import hashlib
+import io
 import os
 import psutil
 import re
 import socket
-from decimal import Decimal
 
-from django.db        import connections, models
-from django.db.models import Max
+from decimal import Decimal
+from PIL     import Image
+
+from django.core.files import uploadedfile
+from django.db         import connections, models
+from django.db.models  import Max
 
 import settings
 
@@ -405,6 +409,27 @@ class File(models.Model):
   @staticmethod
   def _new_with_transaction(f, transaction):
     # f is a Django UploadedFile
+
+    try:
+      img = Image.open(f)
+      w, h = img.size
+      max_size = 1024
+      if w > max_size:
+        img.thumbnail((max_size, max_size))
+        tmp = io.BytesIO()
+        img.save(tmp, img.format)
+        tmp.seek(0)
+        f = uploadedfile.SimpleUploadedFile(
+          name=f.name,
+          content=tmp.read(),
+          content_type=f.content_type
+        )
+        tmp.close()
+    except:
+      pass
+    finally:
+      if img:
+        img.close()
 
     hasher = hashlib.sha256()
     for chunk in f.chunks():
