@@ -13,8 +13,8 @@ urlpatterns = patterns('',
     (r'^accounts/(?P<key>[0-9a-f+]+)/categorize$', 'money_views.views.batch_categorize'),
     (r'^accounts/(?P<key>[0-9a-f+]+)/categorize/apply$', 'money_views.views.apply_categorize'),
 
-    (r'^transaction/(?P<guid>[0-9a-f+]+)/files$', 'money_views.views.transaction_files'),
-    (r'^transaction/(?P<guid>[0-9a-f+]+)/files/upload$', 'money_views.views.transaction_upload_file'),
+    (r'^transaction/(?P<guid>[0-9a-f]+)/files$', 'money_views.views.transaction_files'),
+    (r'^transaction/(?P<guid>[0-9a-f]+)/files/upload$', 'money_views.views.transaction_upload_file'),
 
     (r'^api/change_memo$', 'money_views.api.change_memo'),
     (r'^api/change_account$', 'money_views.api.change_account'),
