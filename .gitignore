@@ -11,4 +11,5 @@ TODO
 /local
 
 # Files attached to transactions
-gnucash_data/static/upload/
+gnucash_data/static/upload/*
+!gnucash_data/static/upload/.gitkeep
