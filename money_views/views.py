@@ -301,7 +301,9 @@ def transaction_files(request, guid):
 
 @login_required
 def transaction_upload_file(request, guid):
-  Transaction.objects.get(guid=guid).attach_file(request.FILES['file'])
+  f = request.FILES.get('file')
+  if f:
+    Transaction.objects.get(guid=guid).attach_file(f)
   return redirect(reverse(
     'money_views.views.transaction_files',
     kwargs={'guid': guid}))
