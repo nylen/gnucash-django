@@ -4,6 +4,7 @@ import io
 import os
 import psutil
 import re
+import shutil
 import socket
 
 from decimal import Decimal
@@ -397,6 +398,13 @@ class File(models.Model):
   class Meta:
     db_table = 'files'
     ordering = ['transaction', 'filename']
+
+  def delete(self, *args, **kwargs):
+    if File.objects.filter(hash=self.hash).count() == 1:
+      # This is the only place this file is used; we can delete it
+      # TODO: This logic does not seem to be working
+      shutil.rmtree(os.path.dirname(self.abs_path))
+    super(File, self).delete(*args, **kwargs)
 
   @property
   def web_path(self):

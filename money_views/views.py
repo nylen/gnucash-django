@@ -307,3 +307,10 @@ def transaction_upload_file(request, guid):
   return redirect(reverse(
     'money_views.views.transaction_files',
     kwargs={'guid': guid}))
+
+@login_required
+def transaction_delete_file(request, guid, hash):
+  Transaction.objects.get(guid=guid).file_set.filter(hash=hash).delete()
+  return redirect(reverse(
+    'money_views.views.transaction_files',
+    kwargs={'guid': guid}))

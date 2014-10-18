@@ -21,7 +21,10 @@
   </div>
   {% for file in transaction.file_set.all %}
     <div class="block">
-      {{ file.filename }}<br />
+      {{ file.filename }} |
+      <a class="delete-attachment"
+        href="{% url money_views.views.transaction_delete_file transaction.guid file.hash %}">delete</a>
+      <br />
       <img class="auto-resize" src="{{ STATIC_URL }}{{ file.web_path }}" />
     </div>
   {% endfor %}
