@@ -64,6 +64,29 @@ class TransactionSplitFilter():
       self.filtered_splits = \
         self.filtered_splits.filter(transaction__post_date__lt=self.max_date + datetime.timedelta(days=1))
 
+    self.min_amount = data['min_amount']
+    self.max_amount = data['max_amount']
+    # ugh
+    if self.min_amount:
+      self.any_filters_applied = True
+      self.min_amount -= Decimal('1e-8')
+    if self.max_amount:
+      self.any_filters_applied = True
+      self.max_amount += Decimal('1e-8')
+
+    if self.min_amount and self.max_amount:
+      self.filtered_splits = self.filtered_splits.filter(
+        (Q(value_num__gte=F('value_denom') *  self.min_amount) & Q(value_num__lte=F('value_denom') *  self.max_amount)) |
+        (Q(value_num__lte=F('value_denom') * -self.min_amount) & Q(value_num__gte=F('value_denom') * -self.max_amount)))
+    elif self.min_amount:
+      self.filtered_splits = self.filtered_splits.filter(
+        (Q(value_num__gte=F('value_denom') *  self.min_amount)) |
+        (Q(value_num__lte=F('value_denom') * -self.min_amount)))
+    elif self.max_amount:
+      self.filtered_splits = self.filtered_splits.filter(
+        (Q(value_num__lte=F('value_denom') *  self.max_amount)) |
+        (Q(value_num__gte=F('value_denom') * -self.max_amount)))
+
   @staticmethod
   def _ordered_splits(splits):
     return splits.order_by(
@@ -168,23 +191,6 @@ class RuleHelper():
     splits_real = Split.objects \
         .filter(transaction__guid__in=tx_guids) \
         .exclude(account__guid__in=[a.guid for a in accounts])
-
-    # ugh
-    if min_amount: min_amount -= Decimal('1e-8')
-    if max_amount: max_amount += Decimal('1e-8')
-
-    if min_amount and max_amount:
-      splits_real = splits_real.filter(
-        (Q(value_num__gte=F('value_denom') *  min_amount) & Q(value_num__lte=F('value_denom') *  max_amount)) |
-        (Q(value_num__lte=F('value_denom') * -min_amount) & Q(value_num__gte=F('value_denom') * -max_amount)))
-    elif min_amount:
-      splits_real = splits_real.filter(
-        (Q(value_num__gte=F('value_denom') *  min_amount)) |
-        (Q(value_num__lte=F('value_denom') * -min_amount)))
-    elif max_amount:
-      splits_real = splits_real.filter(
-        (Q(value_num__lte=F('value_denom') *  max_amount)) |
-        (Q(value_num__gte=F('value_denom') * -max_amount)))
 
     split_guids = list(splits_real.distinct().values_list('guid', flat=True))
     tx_count = len(split_guids)

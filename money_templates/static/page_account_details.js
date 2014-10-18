@@ -123,19 +123,6 @@ $(function() {
     return text.replace(/[-[\]{}()*+?.,\\^$|#]/g, "\\$&");
   }
 
-  var formatDate = function(date) {
-    if (isNaN(date)) {
-      return '';
-    } else {
-      var m = '00' + (date.getMonth() + 1);
-      var d = '00' + date.getDate();
-      var y = '00' + date.getFullYear();
-      return (m.substring(m.length - 2)
-        + '/' + d.substring(d.length - 2)
-        + '/' + y.substring(y.length - 2));
-    }
-  }
-
   $('table.transactions td.description').click(function() {
     showFilterForm(true);
 
@@ -160,35 +147,69 @@ $(function() {
     return true;
   });
 
-  $('table.transactions td.date').click(function() {
-    showFilterForm(true);
-
-    var thisDate = new Date(Date.parse($(this).data('value')));
-    var minDate  = new Date(Date.parse($('#id_min_date').val()));
-    var maxDate  = new Date(Date.parse($('#id_max_date').val()));
-    var toFocus = '#id_min_date';
-
-    if (thisDate < minDate) {
-      minDate = thisDate;
-    } else if (thisDate > maxDate) {
-      toFocus = '#id_max_date';
-      maxDate = thisDate;
-    } else if (thisDate - minDate == 0 && thisDate - maxDate == 0) {
-      // Can't use == to compare dates
-      minDate = NaN;
-      maxDate = NaN;
-    } else {
-      minDate = thisDate;
-      maxDate = thisDate;
+  function filterRangeFromValue(value, minSel, maxSel, parse, format) {
+    if (!format) {
+      format = function(val) { return val; }
     }
-    $('#id_min_date').val(formatDate(minDate));
-    $('#id_max_date').val(formatDate(maxDate));
+    function formatInternal(val) {
+      return (isNaN(val) ? '' : format(val));
+    }
+
+    var thisVal = parse(value),
+        minVal  = parse($(minSel).val()),
+        maxVal  = parse($(maxSel).val()),
+        toFocus = minSel;
+
+    if (thisVal < minVal) {
+      // Decrease the bottom of the filtered range
+      minVal = thisVal;
+    } else if (thisVal > maxVal) {
+      // Increase the top of the filtered range
+      toFocus = maxSel;
+      maxVal = thisVal;
+    } else if (thisVal - minVal == 0 && thisVal - maxVal == 0) {
+      // Clear the filtered range (do the comparison this way because you can't
+      // use == to compare dates)
+      minVal = NaN;
+      maxVal = NaN;
+    } else {
+      minVal = thisVal;
+      maxVal = thisVal;
+    }
+    $(minSel).val(formatInternal(minVal));
+    $(maxSel).val(formatInternal(maxVal));
     // Hack to make the Android ICS browser actually display the new value
-    $('#id_min_date, #id_max_date').css('visibility', 'visible');
+    $([minSel, maxSel].join(', ')).css('visibility', 'visible');
 
     $(toFocus).focusselect();
+  }
+
+  $('table.transactions td.date').click(function() {
+    showFilterForm(true);
+    filterRangeFromValue(
+      $(this).data('value'),
+      '#id_min_date', '#id_max_date',
+      function(val) {
+        return new Date(Date.parse(val));
+      },
+      function(date) {
+        var m = '00' + (date.getMonth() + 1);
+        var d = '00' + date.getDate();
+        var y = '00' + date.getFullYear();
+        return (m.substring(m.length - 2)
+          + '/' + d.substring(d.length - 2)
+          + '/' + y.substring(y.length - 2));
+      });
   });
 
+  $('table.transactions td.amount').click(function() {
+    // TODO refactor this to a generic version with the td.date logic
+    showFilterForm(true);
+    filterRangeFromValue(
+      Math.abs($(this).data('value')),
+      '#id_min_amount', '#id_max_amount',
+      parseFloat);
+  });
 
   $('#form-modify form').submit(function(e) {
     if (!$('#modify_id_change_opposing_account').val()) {

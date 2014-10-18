@@ -24,6 +24,10 @@ class FilterForm(forms.Form):
       required=False, initial='')
     self.fields['max_date'] = forms.DateField(
       required=False, initial='')
+    self.fields['min_amount'] = forms.DecimalField(
+      required=False, initial='')
+    self.fields['max_amount'] = forms.DecimalField(
+      required=False, initial='')
 
 
 class ModifyForm(FilterForm):
@@ -34,15 +38,12 @@ class ModifyForm(FilterForm):
     self.fields['min_date'].widget = forms.HiddenInput()
     self.fields['max_date'].widget = forms.HiddenInput()
     for a in ['readonly', 'class']:
-      self.fields['tx_desc'].widget.attrs[a] = 'readonly'
+      for f in ['tx_desc', 'min_amount', 'max_amount']:
+        self.fields[f].widget.attrs[a] = 'readonly'
 
     self.fields['change_opposing_account'] = forms.ChoiceField(
       required=False, initial='', choices=choices.modify_account_choices)
 
-    self.fields['min_amount'] = forms.DecimalField(
-      required=False, initial='')
-    self.fields['max_amount'] = forms.DecimalField(
-      required=False, initial='')
     self.fields['save_rule'] = forms.BooleanField(
       required=False, initial=True,
       label='Save rule for future transactions')
@@ -54,9 +55,12 @@ class HiddenFilterForm(FilterForm):
 
     self.fields['opposing_accounts'].widget = forms.MultipleHiddenInput()
     self.fields['opposing_accounts'].choices = choices.filter_all_account_choices
+
+    self.fields['tx_desc'].widget = forms.HiddenInput()
     self.fields['min_date'].widget = forms.HiddenInput()
     self.fields['max_date'].widget = forms.HiddenInput()
-    self.fields['tx_desc'].widget = forms.HiddenInput()
+    self.fields['min_amount'].widget = forms.HiddenInput()
+    self.fields['max_amount'].widget = forms.HiddenInput()
 
 
 class BatchModifyForm(forms.Form):

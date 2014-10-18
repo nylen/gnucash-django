@@ -133,7 +133,9 @@
             <i class="change-opposing-account icon-caret-down" data-value="{{ split.opposing_account.guid }}"
               title="Change opposing account"></i>
           </td>
-          <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}">
+          <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}"
+            data-value="{{ split.amount }}">
+
             {{ split.amount|format_decimal }}
           </td>
         </tr>
