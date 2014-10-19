@@ -203,7 +203,6 @@ $(function() {
   });
 
   $('table.transactions td.amount').click(function() {
-    // TODO refactor this to a generic version with the td.date logic
     showFilterForm(true);
     filterRangeFromValue(
       Math.abs($(this).data('value')),
