@@ -148,7 +148,7 @@ class Account(models.Model):
           SELECT value_denom, SUM(value_num)
           FROM splits
           WHERE account_guid = %s
-          GROUP BY 1
+          GROUP BY value_denom
         ''', [self.guid])
       amount = Decimal(0)
       for row in cursor.fetchall():

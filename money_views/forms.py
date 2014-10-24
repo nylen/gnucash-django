@@ -106,7 +106,7 @@ class AccountChoices():
           WHERE s.account_guid IN (%s)
           AND s2.account_guid NOT IN (%s)
 
-          GROUP BY 1
+          GROUP BY s2.account_guid
         ) s
         ON s.account_guid = a.guid
 
