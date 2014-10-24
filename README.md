@@ -44,7 +44,7 @@ Requirements
    should work to make the GnuCash API visible to this application's virtual
    environment:
 
-        ln -s /usr/local/lib/python2.7/dist-packages/gnucash/ lib/python2.7/gnucash
+        ln -s /usr/local/lib/python2.7/dist-packages/gnucash/ lib/python2.7/site-packages/
 
 Installation
 ------------
