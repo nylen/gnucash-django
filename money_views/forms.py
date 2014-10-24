@@ -8,6 +8,7 @@ from gnucash_data.models import Account
 
 DEFAULT_FILTER_ACCOUNT_CHOICES = [('all', '(all)')]
 DEFAULT_MODIFY_ACCOUNT_CHOICES = [('', '(no change)'), ('DELETE', '(DELETE)')]
+DEFAULT_NEW_TRANSCTION_ACCOUNT_CHOICES = [('', '(Imbalance-USD)')]
 
 
 class FilterForm(forms.Form):
@@ -76,6 +77,22 @@ class BatchModifyForm(forms.Form):
         initial=merchant['description'], widget=forms.HiddenInput)
 
 
+class NewTransactionForm(forms.Form):
+  def __init__(self, choices, *args, **kwargs):
+    super(NewTransactionForm, self).__init__(*args, **kwargs)
+
+    self.fields['tx_desc'] = forms.CharField(
+      required=True, initial='', label='Description')
+    self.fields['memo'] = forms.CharField(
+      required=False, initial='', label='Memo')
+    self.fields['post_date'] = forms.DateField(
+      required=True, initial='')
+    self.fields['opposing_account'] = forms.ChoiceField(
+      required=False, choices=choices.new_transaction_account_choices)
+    self.fields['amount'] = forms.DecimalField(
+      required=True, initial='')
+
+
 class AccountChoices():
   def __init__(self, accounts, **kwargs):
     cursor = connections['gnucash'].cursor()
@@ -121,6 +138,7 @@ class AccountChoices():
     filter_all_account_choices = []
     filter_account_choices = []
     modify_account_choices = []
+    new_transaction_account_choices = []
 
     exclude_guids = account_guids
     if 'exclude' in kwargs:
@@ -134,12 +152,15 @@ class AccountChoices():
       filter_all_account_choices.append((guid, path))
       if is_present:
         filter_account_choices.append((guid, path))
-      if not placeholder and guid not in exclude_guids:
-        modify_account_choices.append((guid, path))
+      if not placeholder:
+        if guid not in exclude_guids:
+          modify_account_choices.append((guid, path))
+        new_transaction_account_choices.append((guid, path))
 
     get_account_path = lambda a: a[1]
     filter_account_choices.sort(key=get_account_path)
     modify_account_choices.sort(key=get_account_path)
+    new_transaction_account_choices.sort(key=get_account_path)
 
     self.filter_all_account_choices = \
       DEFAULT_FILTER_ACCOUNT_CHOICES + filter_all_account_choices
@@ -147,3 +168,5 @@ class AccountChoices():
       DEFAULT_FILTER_ACCOUNT_CHOICES + filter_account_choices
     self.modify_account_choices = \
       DEFAULT_MODIFY_ACCOUNT_CHOICES + modify_account_choices
+    self.new_transaction_account_choices = \
+      DEFAULT_NEW_TRANSCTION_ACCOUNT_CHOICES + new_transaction_account_choices

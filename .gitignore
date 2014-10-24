@@ -13,3 +13,7 @@ TODO
 # Files attached to transactions
 gnucash_data/static/upload/*
 !gnucash_data/static/upload/.gitkeep
+
+# GnuCash API home directory
+gnucash_api_home/*
+!gnucash_api_home/.gitkeep

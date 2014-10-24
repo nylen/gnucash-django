@@ -1,0 +1,18 @@
+<form action="{% url money_views.views.new_transaction current_accounts_key %}" method="post">
+  <table id="filters-fields" class="form-table">
+    {% for field in new_transaction_form.visible_fields %}
+      <tr class="field-{{ field.html_name }}">
+        <th>{{ field.label_tag }}:&nbsp;</th>
+        <td>
+          {{ field.errors }}
+          {{ field }}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  {% for field in new_transaction_form.hidden_fields %}
+    {{ field }}
+  {% endfor %}
+  {% csrf_token %}
+  <input type="submit" value="Add transaction" />
+</form>

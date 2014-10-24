@@ -1,4 +1,7 @@
+from dateutil import parser as dateparser
+from decimal import Decimal
 import json
+import os
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator          import Paginator, EmptyPage, PageNotAnInteger
@@ -11,7 +14,10 @@ import api
 import filters
 import forms
 import settings
-from gnucash_data.models import Account, Transaction
+from gnucash_data.models import Account, Lock, Transaction
+
+
+set_home_for_gnucash_api = False
 
 
 def get_accounts(key):
@@ -83,6 +89,11 @@ def account(request, key):
   modify_form_data['save_rule'] = True
   modify_form = forms.ModifyForm(choices, modify_form_data, auto_id="modify_id_%s")
 
+  if len(accounts) == 1:
+    new_transaction_form = forms.NewTransactionForm(choices)
+  else:
+    new_transaction_form = None
+
   try:
     page_num = int(request.GET.get('page'))
   except:
@@ -114,6 +125,7 @@ def account(request, key):
     'page': page,
     'filter_form': filter_form,
     'modify_form': modify_form,
+    'new_transaction_form': new_transaction_form,
     'total_balance': sum(a.balance for a in accounts),
   })
   return HttpResponse(template.render(c))
@@ -289,6 +301,92 @@ def apply_categorize(request, key):
   })
   return HttpResponse(template.render(c))
 
+
+@login_required
+def new_transaction(request, key):
+  accounts = get_accounts(key)
+  if len(accounts) != 1:
+    raise ValueError('Can only create transactions for 1 account at a time.')
+  src_account = accounts[0]
+
+  choices = forms.AccountChoices(accounts)
+
+  new_tx_form = forms.NewTransactionForm(choices, request.POST)
+
+  if not new_tx_form.is_valid():
+    raise ValueError(new_tx_form.errors)
+
+  txinfo = new_tx_form.cleaned_data
+
+  txinfo['amount'] = Decimal(txinfo['amount'])
+
+  global set_home_for_gnucash_api
+  if not set_home_for_gnucash_api:
+    # Bad gnucash depends on $HOME (this dir needs to be writable by the webserver)
+    os.environ['HOME'] = os.path.abspath(os.path.join(
+      os.path.dirname(os.path.dirname(__file__)), 'gnucash_api_home'))
+    set_home_for_gnucash_api = True
+
+  import gnucash
+  from gnucash_scripts import common
+
+  # make sure we can begin a session
+  Lock.check_can_obtain()
+
+  # begin GnuCash API session
+  session = gnucash.Session(settings.GNUCASH_CONN_STRING)
+
+  try:
+    book = session.book
+    USD = book.get_table().lookup('ISO4217', 'USD')
+
+    root = book.get_root_account()
+    imbalance = common.get_account_by_path(root, 'Imbalance-USD')
+
+    acct = common.get_account_by_guid(root, src_account.guid)
+    opposing_acct = common.get_account_by_guid(root, txinfo['opposing_account'])
+    gnc_amount = common.decimal_to_gnc_numeric(Decimal(txinfo['amount']))
+
+    # From example script 'test_imbalance_transaction.py'
+    trans = gnucash.Transaction(book)
+    trans.BeginEdit()
+    trans.SetCurrency(USD)
+    trans.SetDescription(str(txinfo['tx_desc']))
+    trans.SetDate(
+      txinfo['post_date'].day,
+      txinfo['post_date'].month,
+      txinfo['post_date'].year)
+
+    split1 = gnucash.Split(book)
+    split1.SetParent(trans)
+    split1.SetAccount(acct)
+    if txinfo.has_key('memo'):
+      split1.SetMemo(str(txinfo['memo']))
+    # The docs say both of these are needed:
+    # http://svn.gnucash.org/docs/HEAD/group__Transaction.html
+    split1.SetValue(gnc_amount)
+    split1.SetAmount(gnc_amount)
+    split1.SetReconcile('c')
+
+    if opposing_acct != None:
+      split2 = Split(book)
+      split2.SetParent(trans)
+      split2.SetAccount(opposing_acct)
+      split2.SetValue(gnc_amount.neg())
+      split2.SetAmount(gnc_amount.neg())
+      split2.SetReconcile('c')
+
+    trans.CommitEdit()
+
+  finally:
+    session.end()
+    session.destroy()
+
+  return redirect(reverse(
+    'money_views.views.account',
+    kwargs={'key': key}))
+
+
 @login_required
 def transaction_files(request, guid):
   template = loader.get_template('page_txaction_files.html')
@@ -299,6 +397,7 @@ def transaction_files(request, guid):
   })
   return HttpResponse(template.render(c))
 
+
 @login_required
 def transaction_upload_file(request, guid):
   f = request.FILES.get('file')
@@ -307,6 +406,7 @@ def transaction_upload_file(request, guid):
   return redirect(reverse(
     'money_views.views.transaction_files',
     kwargs={'guid': guid}))
+
 
 @login_required
 def transaction_delete_file(request, guid, hash):

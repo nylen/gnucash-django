@@ -144,4 +144,12 @@
     </table>
   </div>
   {% include "txactions_page_block.html" %}
+  {% if accounts|length == 1 %}
+    <div class="block">
+      <p>
+        <strong>Add new transaction</strong>
+      </p>
+      {% include "new_transaction_form.html" %}
+    </div>
+  {% endif %}
 {% endblock %}
