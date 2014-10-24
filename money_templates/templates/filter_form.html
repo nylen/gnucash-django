@@ -1,8 +1,5 @@
 <form action="" method="get">
   <table id="filters-fields" class="form-table">
-    {% for field in filter_form.hidden_fields %}
-      {{ field }}
-    {% endfor %}
     {% for field in filter_form.visible_fields %}
       {% if field.html_name = 'opposing_accounts' %}
         <tr class="field-opposing_account">
@@ -24,6 +21,9 @@
       </tr>
     {% endfor %}
   </table>
+  {% for field in filter_form.hidden_fields %}
+    {{ field }}
+  {% endfor %}
   <input type="submit" value="Apply" />
   <a href="{% url money_views.views.account current_accounts_key %}">clear filters</a>
 </form>

@@ -28,9 +28,6 @@
         No uncategorized transactions.
       {% else %}
         <table id="batch-modify-fields" class="form-table">
-          {% for f in batch_modify_form.hidden_fields %}
-            {{ f }}
-          {% endfor %}
           {% for f in batch_modify_form.visible_fields %}
             <tr>
               <th>
@@ -66,6 +63,9 @@
       {% csrf_token %}
     </div>
     <div class="block">
+      {% for f in batch_modify_form.hidden_fields %}
+        {{ f }}
+      {% endfor %}
       <input type="submit" value="Categorize transactions" />
       <a href="{% url money_views.views.account current_accounts_key %}">Back to account</a>
     </div>
