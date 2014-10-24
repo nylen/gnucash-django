@@ -15,6 +15,10 @@ Features
  - Change the opposing account of any transaction and create rules for future
    transactions
 
+ - Attach images to transactions
+
+ - Add new transactions from the web interface
+
  - Import JSON files produced by my
    [`banker`](https://github.com/nylen/node-banker) transaction downloader and
    automatically categorize transactions according to the saved rules
