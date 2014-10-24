@@ -89,7 +89,14 @@ def account(request, key):
   modify_form_data['save_rule'] = True
   modify_form = forms.ModifyForm(choices, modify_form_data, auto_id="modify_id_%s")
 
-  if len(accounts) == 1:
+  try:
+    can_add_transactions = settings.ENABLE_ADD_TRANSACTIONS
+  except AttributeError:
+    can_add_transactions = False
+
+  can_add_transactions = (can_add_transactions and len(accounts) == 1)
+
+  if can_add_transactions:
     new_transaction_form = forms.NewTransactionForm(choices)
   else:
     new_transaction_form = None
@@ -121,6 +128,7 @@ def account(request, key):
     'api_functions_js': json.dumps(api.function_urls.urls_dict),
     'accounts': accounts,
     'current_accounts_key': accounts_key(accounts),
+    'can_add_transactions': can_add_transactions,
     'account': accounts[0],
     'page': page,
     'filter_form': filter_form,

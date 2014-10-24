@@ -163,6 +163,13 @@ ACCOUNTS_LIST = [
 NUM_MERCHANTS_BATCH_CATEGORIZE = 50
 NUM_TRANSACTIONS_PER_PAGE = 50
 
+# This feature requires a little more setup.  Namely, the GnuCash API must be
+# properly set up (which generally requires building GnuCash from source) and
+# it must be made available to the application's virtualenv.  Also, the user
+# running the application must have write access to the gnucash_api_home/
+# directory.
+ENABLE_ADD_TRANSACTIONS = False
+
 
 if SHOW_DEBUG_TOOLBAR:
   MIDDLEWARE_CLASSES += (

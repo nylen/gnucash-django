@@ -144,7 +144,7 @@
     </table>
   </div>
   {% include "txactions_page_block.html" %}
-  {% if accounts|length == 1 %}
+  {% if can_add_transactions %}
     <div class="block">
       <p>
         <strong>Add new transaction</strong>
