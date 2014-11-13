@@ -23,8 +23,8 @@ import settings # only works due to path fuckery above
 setup_environ(settings)
 
 from django.core.files import uploadedfile
-from gnucash_data import models
-from utils import data_url
+from gnucash_data      import models
+from utils             import data_url
 from utils.AsciiDammit import asciiDammit
 
 # begin a session
