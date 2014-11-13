@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+#import time
 from datetime import datetime
 from dateutil import parser as dateparser
 from decimal  import Decimal
@@ -23,7 +24,11 @@ from django.core.management import setup_environ
 import settings # only works due to path fuckery above
 setup_environ(settings)
 
-from gnucash_data import models
+from django.core.files import uploadedfile
+from django.db         import connections
+
+from gnucash_data      import models
+from utils             import data_url
 from utils.AsciiDammit import asciiDammit
 
 # make sure we can begin a session
@@ -168,6 +173,40 @@ try:
 
               trans.CommitEdit()
               tx_guid = trans.GetGUID().to_string()
+              debug_print(tx_guid)
+
+              if 'images' in txinfo:
+                for (img_basename, img_data_url) in txinfo['images'].iteritems():
+                  img = data_url.parse(img_data_url)
+                  img_filename = img_basename + img.extension
+
+                  debug_print('Attaching image %s to transaction: %s'
+                    % (img_filename, get_transaction_string(txinfo)))
+
+                  # force changes to commit to DB (blech)
+                  #debug_print('Closing GnuCash session first')
+                  #session.end()
+                  #session.destroy()
+                  #time.sleep(5)
+                  #debug_print('Reopening GnuCash session')
+                  #session = Session(settings.GNUCASH_CONN_STRING)
+
+                  cursor = connections['gnucash'].cursor()
+                  cursor.execute('''
+                      SELECT *
+                      FROM transactions
+                      WHERE guid = %s
+                    ''', [tx_guid])
+                  for row in cursor.fetchall():
+                    debug_print(str(row))
+
+                  img_file = uploadedfile.SimpleUploadedFile(
+                    name=img_filename,
+                    content=img.data,
+                    content_type=img.mime_type
+                  )
+                  models.Transaction.objects.get(guid=tx_guid).attach_file(img_file)
+                  img_file.close()
 
             tx = models.ImportedTransaction()
             tx.account_guid = acct_guid
