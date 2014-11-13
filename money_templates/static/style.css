@@ -13,6 +13,17 @@ a.no-ul:hover {
   text-decoration: none;
 }
 
+.hidden {
+  display: none;
+}
+
+body.copy-mode {
+  cursor: copy;
+}
+body.copy-mode tr.hover {
+  background: #ff6;
+}
+
 .block {
   padding-top: 8px;
   margin-top: 8px;
@@ -77,9 +88,6 @@ table.transactions .memo {
 }
 table.transactions .edit-memo {
   cursor: pointer;
-}
-table.transactions .hidden {
-  display: none;
 }
 table.transactions .opposing-account {
   padding-right: 8px;

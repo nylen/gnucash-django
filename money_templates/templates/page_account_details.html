@@ -78,7 +78,7 @@
       </tr>
 
       {% for split in page.object_list %}
-        <tr>
+        <tr data-tx="{{ split.transaction.guid }}">
           <td class="description" colspan="3" data-value="{{ split.transaction.description }}">
             {% if accounts|length > 1 %}
               <span class="account-index" title="{{ split.account.description_or_name }}">{{ split.account|index1_in:accounts }}</span>
@@ -103,7 +103,8 @@
 
         {% for memo_split in split.transaction.splits %}
           <tr{% if memo_split.memo_is_id_or_blank %} class="hidden"{% endif %}
-            data-split="{{ memo_split.guid }}" data-account="{{ memo_split.account.guid }}">
+            data-tx="{{ split.transaction.guid }}" data-account="{{ memo_split.account.guid }}"
+            data-split="{{ memo_split.guid }}">
 
             <td class="memo" colspan="3" data-value="{{ memo_split.memo }}"
               title="Memo for account '{{ memo_split.account.path }}'">
@@ -113,7 +114,9 @@
           </tr>
         {% endfor %}
 
-        <tr data-split="{{ split.guid }}" data-opposing-split="{{ split.opposing_split.guid }}">
+        <tr data-tx="{{ split.transaction.guid }}"
+          data-split="{{ split.guid }}" data-opposing-split="{{ split.opposing_split.guid }}">
+
           <td class="date" data-value="{{ split.transaction.post_date|format_date }}">
             {{ split.transaction.post_date|format_date }}
           </td>

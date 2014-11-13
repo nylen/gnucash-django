@@ -1,5 +1,6 @@
 $(function() {
-  var currentForm = null;
+  var currentForm = null,
+      copyMode    = false;
 
   $.fn.focusselect = function(delay) {
     var o = this;
@@ -27,6 +28,9 @@ $(function() {
   var delayFilterFocus = true;
 
   function showFilterForm(slow) {
+    if (copyMode) {
+      return;
+    }
     if (!$('#form-filters').is(':visible')) {
       if (!slow) {
         $('#form-filters').show();
@@ -321,6 +325,64 @@ $(function() {
   });
 
   $select.remove();
+
+
+  var $copyFrom = $('#copy-from-transaction'),
+      $txRows   = $('table.transactions tr');
+
+  function setCopyMode(newCopyMode) {
+    copyMode = newCopyMode;
+    $copyFrom.text(copyMode
+      ? '(click a transaction or click to cancel)'
+      : 'copy from transaction');
+    $('body')[copyMode ? 'addClass' : 'removeClass']('copy-mode');
+    $txRows.removeClass('hover');
+  }
+
+  $copyFrom.removeClass('hidden').click(function() {
+    setCopyMode(!copyMode);
+    return false;
+  });
+
+  function hoverTransaction(tr, hoverOn) {
+    if (!copyMode) {
+      return;
+    }
+    var guid = $(tr).data('tx') || 'none';
+    $txRows.each(function() {
+      if (hoverOn && $(this).data('tx') == guid) {
+        $(this).addClass('hover');
+      } else {
+        $(this).removeClass('hover');
+      }
+    });
+  }
+
+  $txRows.hover(function() {
+    hoverTransaction(this, true);
+  }, function() {
+    hoverTransaction(this, false);
+  }).click(function(e) {
+    if (!copyMode) {
+      return true;
+    }
+
+    var guid = $(this).data('tx');
+    if (guid) {
+      $rows = $txRows.filter(function() {
+        return ($(this).data('tx') == guid && !$(this).hasClass('hidden'));
+      });
+      $('#id_new_trans_tx_desc').val($rows.find('td.description').data('value'));
+      $('#id_new_trans_memo').val($rows.find('td.memo').data('value'));
+      $('#id_new_trans_post_date').val($rows.find('td.date').data('value'));
+      $('#id_new_trans_opposing_account').val($rows.find('.change-opposing-account').data('value'));
+      $('#id_new_trans_amount').val($rows.find('td.amount').data('value'));
+    }
+
+    setCopyMode(false);
+    e.stopPropagation();
+    return false;
+  });
 
 
   // The Android ICS browser doesn't seem to give disabled/readonly input

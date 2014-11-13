@@ -97,7 +97,7 @@ def account(request, key):
   can_add_transactions = (can_add_transactions and len(accounts) == 1)
 
   if can_add_transactions:
-    new_transaction_form = forms.NewTransactionForm(choices)
+    new_transaction_form = forms.NewTransactionForm(choices, auto_id='id_new_trans_%s')
   else:
     new_transaction_form = None
 
