@@ -377,7 +377,7 @@ def new_transaction(request, key):
     split1.SetReconcile('c')
 
     if opposing_acct != None:
-      split2 = Split(book)
+      split2 = gnucash.Split(book)
       split2.SetParent(trans)
       split2.SetAccount(opposing_acct)
       split2.SetValue(gnc_amount.neg())
