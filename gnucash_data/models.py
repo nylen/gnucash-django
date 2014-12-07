@@ -421,8 +421,8 @@ class File(models.Model):
     try:
       img = Image.open(f)
       w, h = img.size
-      max_size = 1024
-      if w > max_size:
+      max_size = 1600
+      if max(w, h) > max_size:
         img.thumbnail((max_size, max_size))
         tmp = io.BytesIO()
         img.save(tmp, img.format)
