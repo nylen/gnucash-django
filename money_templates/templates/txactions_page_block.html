@@ -8,5 +8,6 @@
   {% endif %}
   {% if page.has_next %}
     | <a href="{{ request.path }}{% query_string 'page=page.next_page_number' '' %}">next</a>
+    | <a href="{{ request.path }}{% query_string 'page=page.paginator.num_pages' '' %}">last</a>
   {% endif %}
 </div>
