@@ -390,9 +390,11 @@ def new_transaction(request, key):
     session.end()
     session.destroy()
 
-  return redirect(reverse(
-    'money_views.views.account',
-    kwargs={'key': key}))
+  dest_url = request.META.get('HTTP_REFERER')
+  if not dest_url:
+    dest_url = reverse('money_views.views.account', kwargs={'key': key})
+
+  return redirect(dest_url)
 
 
 @login_required
