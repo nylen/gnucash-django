@@ -21,18 +21,25 @@
   </div>
   {% for file in transaction.file_set.all %}
     <div class="block">
-      {{ file.filename }} |
+      {% if file.extension == '.pdf' %}
+        <a href="{{ STATIC_URL }}{{ file.web_path }}">{{ file.filename }}</a>
+      {% else %}
+        {{ file.filename }}
+      {% endif %}
+      |
       <a class="delete-attachment"
         href="{% url money_views.views.transaction_delete_file transaction.guid file.hash %}">delete</a>
       <br />
-      <img class="auto-resize" src="{{ STATIC_URL }}{{ file.web_path }}" />
+      {% if file.extension != '.pdf' %}
+        <img class="auto-resize" src="{{ STATIC_URL }}{{ file.web_path }}" />
+      {% endif %}
     </div>
   {% endfor %}
   <div class="block">
     <form method="post" enctype="multipart/form-data" action="{% url money_views.views.transaction_upload_file transaction.guid %}">
-      Upload image:<br />
+      Upload image or PDF:<br />
       {# http://stackoverflow.com/a/12673480/106302 #}
-      <input type="file" name="file" accept="image/*" /><br />
+      <input type="file" name="file" accept="image/*,application/pdf" /><br />
       <input type="submit" value="Upload" />
       {% csrf_token %}
     </form>

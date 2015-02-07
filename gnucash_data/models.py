@@ -407,6 +407,10 @@ class File(models.Model):
     super(File, self).delete(*args, **kwargs)
 
   @property
+  def extension(self):
+    return '.' + self.filename.split('.')[-1].lower()
+
+  @property
   def web_path(self):
     return 'upload/%s/%s' % (self.hash, self.filename)
 
@@ -418,26 +422,28 @@ class File(models.Model):
   def _new_with_transaction(f, transaction):
     # f is a Django UploadedFile
 
-    try:
-      img = Image.open(f)
-      w, h = img.size
-      max_size = 1600
-      if max(w, h) > max_size:
-        img.thumbnail((max_size, max_size))
-        tmp = io.BytesIO()
-        img.save(tmp, img.format)
-        tmp.seek(0)
-        f = uploadedfile.SimpleUploadedFile(
-          name=f.name,
-          content=tmp.read(),
-          content_type=f.content_type
-        )
-        tmp.close()
-    except:
-      pass
-    finally:
-      if img:
-        img.close()
+    image_type = 'image/'
+    if f.content_type[:len(image_type)] == image_type:
+      try:
+        img = Image.open(f)
+        w, h = img.size
+        max_size = 1600
+        if max(w, h) > max_size:
+          img.thumbnail((max_size, max_size))
+          tmp = io.BytesIO()
+          img.save(tmp, img.format)
+          tmp.seek(0)
+          f = uploadedfile.SimpleUploadedFile(
+            name=f.name,
+            content=tmp.read(),
+            content_type=f.content_type
+          )
+          tmp.close()
+      except:
+        pass
+      finally:
+        if img:
+          img.close()
 
     hasher = hashlib.sha256()
     for chunk in f.chunks():
