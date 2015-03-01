@@ -88,7 +88,6 @@ try:
         rules = [ra.rule for ra in models.RuleAccount.objects
           .filter(account_guid=acct_guid).select_related().distinct('rule__id')]
 
-        updated = False
         imported_transactions = []
 
         balance = acct_data['balances'].get('actual', None)
@@ -96,8 +95,6 @@ try:
           balance = Decimal(balance)
 
         for txinfo in acct_data['transactions']:
-          updated = True
-
           txinfo['date']        = dateparser.parse(txinfo['date']).date() # treats as MM/DD/YYYY (good)
           txinfo['amount']      = Decimal(txinfo['amount'])
           txinfo['description'] = asciiDammit(txinfo.get('description', ''))
@@ -175,16 +172,15 @@ try:
             tx.source_tx_id = txinfo['sourceId']
             imported_transactions.append(tx)
 
-        if updated:
-          u = models.Update()
-          u.account_guid = acct_guid
-          u.updated = datetime.utcnow()
-          u.balance = balance
-          u.save()
+        u = models.Update()
+        u.account_guid = acct_guid
+        u.updated = datetime.utcnow()
+        u.balance = balance
+        u.save()
 
-          for tx in imported_transactions:
-            tx.update = u
-            tx.save()
+        for tx in imported_transactions:
+          tx.update = u
+          tx.save()
 
     f.close()
 
