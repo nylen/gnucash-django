@@ -14,24 +14,12 @@ import api
 import filters
 import forms
 import settings
+
+from utils               import misc_functions
 from gnucash_data.models import Account, Lock, Transaction
 
 
 set_home_for_gnucash_api = False
-
-
-def get_accounts(key):
-  return [get_account(k) for k in key.split('+')]
-
-def get_account(key):
-  try:
-    path = settings.ACCOUNTS_LIST[int(key)]
-    return Account.from_path(path)
-  except ValueError:
-    return Account.get(key)
-
-def accounts_key(accounts):
-  return '+'.join(a.webapp_key for a in accounts)
 
 
 @login_required
@@ -65,7 +53,7 @@ def any_account(request):
 def account(request, key):
   template = loader.get_template('page_account_details.html')
 
-  accounts = get_accounts(key)
+  accounts = misc_functions.get_accounts_by_webapp_key(key)
   splits = filters.TransactionSplitFilter(accounts)
 
   all_accounts = Account.get_all()
@@ -117,9 +105,12 @@ def account(request, key):
 
   Transaction.cache_from_splits(page.object_list)
 
+  current_accounts_key = misc_functions.accounts_webapp_key(accounts)
+
   c = RequestContext(request, {
     'any_filters_applied': splits.any_filters_applied,
     'one_opposing_account_filter_applied': splits.one_opposing_account_filter_applied,
+    'query_params_js': json.dumps(request.GET),
     'regex_chars_js': json.dumps(filters.TransactionSplitFilter.REGEX_CHARS),
     'all_accounts': all_accounts,
     'accounts_js': json.dumps(all_accounts_dict),
@@ -127,7 +118,8 @@ def account(request, key):
     'num_transactions_js': json.dumps(page.paginator.count),
     'api_functions_js': json.dumps(api.function_urls.urls_dict),
     'accounts': accounts,
-    'current_accounts_key': accounts_key(accounts),
+    'current_accounts_key': current_accounts_key,
+    'current_accounts_key_js': json.dumps(current_accounts_key),
     'can_add_transactions': can_add_transactions,
     'account': accounts[0],
     'page': page,
@@ -141,7 +133,7 @@ def account(request, key):
 
 @login_required
 def account_csv(request, key):
-  accounts = get_accounts(key)
+  accounts = misc_functions.get_accounts_by_webapp_key(key)
   splits = filters.TransactionSplitFilter(accounts)
 
   choices = forms.AccountChoices(accounts)
@@ -160,8 +152,9 @@ def account_csv(request, key):
 
   res.write('Account,OpposingAccount,Date,Description,Memo,Amount\n')
 
-  for s in splits.filtered_splits:
+  for s in splits.filtered_splits.all():
     # Determine the best memo to show, if any
+    # TODO logic duplicated with money_views.api.get_transactions
     memo = ''
     if s.memo_is_id_or_blank:
       for memo_split in s.opposing_split_set:
@@ -187,7 +180,7 @@ def account_csv(request, key):
 def modify(request, key):
   template = loader.get_template('page_modify.html')
 
-  accounts = get_accounts(key)
+  accounts = misc_functions.get_accounts_by_webapp_key(key)
   splits = filters.TransactionSplitFilter(accounts)
 
   errors = False
@@ -234,7 +227,7 @@ def modify(request, key):
 
   c = RequestContext(request, {
     'accounts': accounts,
-    'current_accounts_key': accounts_key(accounts),
+    'current_accounts_key': misc_functions.accounts_webapp_key(accounts),
     'opposing_account': opposing_account,
     'hidden_filter_form': hidden_filter_form,
     'errors': errors,
@@ -247,7 +240,7 @@ def modify(request, key):
 def batch_categorize(request, key):
   template = loader.get_template('page_batch_categorize.html')
 
-  accounts = get_accounts(key)
+  accounts = misc_functions.get_accounts_by_webapp_key(key)
   splits = filters.TransactionSplitFilter(accounts)
 
   imbalance = Account.from_path('Imbalance-USD')
@@ -259,7 +252,7 @@ def batch_categorize(request, key):
 
   c = RequestContext(request, {
     'accounts': accounts,
-    'current_accounts_key': accounts_key(accounts),
+    'current_accounts_key': misc_functions.accounts_webapp_key(accounts),
     'batch_modify_form': batch_modify_form,
     'no_merchants': no_merchants,
     'imbalance': imbalance,
@@ -271,7 +264,7 @@ def batch_categorize(request, key):
 def apply_categorize(request, key):
   template = loader.get_template('page_apply_categorize.html')
 
-  accounts = get_accounts(key)
+  accounts = misc_functions.get_accounts_by_webapp_key(key)
   splits = filters.TransactionSplitFilter(accounts)
 
   imbalance = Account.from_path('Imbalance-USD')
@@ -303,7 +296,7 @@ def apply_categorize(request, key):
 
   c = RequestContext(request, {
     'accounts': accounts,
-    'current_accounts_key': accounts_key(accounts),
+    'current_accounts_key': misc_functions.accounts_webapp_key(accounts),
     'modified_tx_count': modified_tx_count,
     'rule_count': rule_count,
   })
@@ -312,7 +305,7 @@ def apply_categorize(request, key):
 
 @login_required
 def new_transaction(request, key):
-  accounts = get_accounts(key)
+  accounts = misc_functions.get_accounts_by_webapp_key(key)
   if len(accounts) != 1:
     raise ValueError('Can only create transactions for 1 account at a time.')
   src_account = accounts[0]

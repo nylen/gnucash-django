@@ -227,3 +227,58 @@ table.form-table select {
   color: #fff;
   background: #bbb;
 }
+
+.loading i {
+    font-style : normal;
+
+    -webkit-animation : blink 1.5s steps(1) infinite;
+       -moz-animation : blink 1.5s steps(1) infinite;
+            animation : blink 1.5s steps(1) infinite;
+}
+.loading i:nth-child(1) {
+    -webkit-animation-delay : -0.5s;
+       -moz-animation-delay : -0.5s;
+            animation-delay : -0.5s;
+}
+.loading i:nth-child(2) {
+    -webkit-animation-delay : -0.25s;
+       -moz-animation-delay : -0.25s;
+            animation-delay : -0.25s;
+}
+.loading i:nth-child(3) {
+    -webkit-animation-delay : 0s;
+       -moz-animation-delay : 0s;
+            animation-delay : 0s;
+}
+
+@-webkit-keyframes blink {
+    0%   { opacity : 1.0; }
+    50%  { opacity : 0.0; }
+    100% { opacity : 1.0; }
+}
+@-moz-keyframes blink {
+    0%   { opacity : 1.0; }
+    50%  { opacity : 0.0; }
+    100% { opacity : 1.0; }
+}
+@keyframes blink {
+    0%   { opacity : 1.0; }
+    50%  { opacity : 0.0; }
+    100% { opacity : 1.0; }
+}
+
+.chart-block h3 {
+  margin: 0 0 .3em 0;
+}
+
+#chart-controls {
+  display: none;
+}
+#expenses-reorder, #income-reorder {
+  display: none;
+}
+.chart-period.active {
+  cursor: default;
+  color: black;
+  text-decoration: none;
+}

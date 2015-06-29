@@ -1,9 +1,13 @@
 import json
 
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 from django.http              import HttpResponse, HttpResponseForbidden
 
-from gnucash_data.models import Split, Lock, Account
+import filters
+import forms
+
+from gnucash_data.models import Split, Lock, Account, Transaction
+from utils               import misc_functions
 
 
 class ApiFunctionUrls():
@@ -71,4 +75,87 @@ def change_account(request):
   return {
     'split_guid': split_guid,
     'account_guid': account_guid,
+  }
+
+
+@json_api_function
+def get_transactions(request):
+  # This is not structured like the other account views (with a `key` parameter
+  # in the URL) because the code above that builds _urls_dict cannot handle
+  # views with parameters.
+  key = request.GET.get('accounts')
+
+  accounts = misc_functions.get_accounts_by_webapp_key(key)
+  splits = filters.TransactionSplitFilter(accounts)
+
+  choices = forms.AccountChoices(accounts)
+
+  filter_form = forms.FilterForm(choices, request.GET)
+  if filter_form.is_valid():
+    splits.filter_splits(filter_form.cleaned_data)
+
+  splits.order_filtered_splits()
+
+  Transaction.cache_from_splits(splits.filtered_splits)
+  data_splits = []
+  data_transactions = []
+  transactions_seen = {}
+
+  for s in splits.filtered_splits:
+    # Determine the best memo to show, if any
+    # TODO logic duplicated with money_views.views.account_csv
+    memo = ''
+    if s.memo_is_id_or_blank:
+      for memo_split in s.opposing_split_set:
+        if not memo_split.memo_is_id_or_blank:
+          memo = memo_split.memo
+          break
+    else:
+      memo = s.memo
+
+    tx = s.transaction
+
+    if tx.guid not in transactions_seen:
+      data_tx_splits = []
+      for ts in tx.split_set.all():
+        data_tx_splits.append({
+          'guid': ts.guid,
+          'account': {
+            'friendly_name': ts.account.description_or_name,
+            'path': ts.account.path,
+            'guid': ts.account.guid
+          },
+          'memo': ts.memo,
+          'amount': str(ts.amount)
+        })
+      data_transactions.append({
+        'guid': tx.guid,
+        'description': tx.description,
+        'post_date': misc_functions.date_to_timestamp(tx.post_date),
+        'splits': data_tx_splits
+      })
+      transactions_seen[tx.guid] = True
+
+    opposing_account = s.opposing_account
+    data_splits.append({
+      'account': {
+        'friendly_name': s.account.description_or_name,
+        'path': s.account.path,
+        'guid': s.account.guid
+      },
+      'opposing_account': {
+        'friendly_name': opposing_account.description_or_name,
+        'path': opposing_account.path,
+        'guid': opposing_account.guid
+      },
+      'tx_guid': tx.guid,
+      'description': tx.description,
+      'memo': memo,
+      'post_date': misc_functions.date_to_timestamp(tx.post_date),
+      'amount': str(s.amount)
+    })
+
+  return {
+    'splits': data_splits,
+    'transactions': data_transactions
   }

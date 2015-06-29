@@ -9,15 +9,24 @@
 
 {% block scripts %}
   <script type="text/javascript">
-    var filteringAny = {% if any_filters_applied %}1{% else %}0{% endif %};
+    var filteringAny = {% if any_filters_applied %}true{% else %}false{% endif %};
+    var queryParams = {{ query_params_js|safe }};
     var regexChars = {{ regex_chars_js|safe }};
     var accounts = {{ accounts_js|safe }};
     var currentAccountIds = {{ current_accounts_js|safe }};
+    var currentAccountsKey = {{ current_accounts_key_js|safe }};
     var numTransactions = {{ num_transactions_js|safe }};
     var apiFunctionUrls = {{ api_functions_js|safe }};
   </script>
   <script type="text/javascript" src="{{ STATIC_URL }}page_account_details.js"></script>
   <script type="text/javascript" src="{{ STATIC_URL }}account_block.js"></script>
+
+  <script type="text/javascript" src="{{ STATIC_URL }}vendor/moment.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}vendor/d3/d3.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}vendor/c3-0.4.10/c3.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}txactions_chart.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}vendor/c3-0.4.10/c3.min.css">
 {% endblock %}
 
 {% block body %}
@@ -40,6 +49,7 @@
       {{ total_balance|format_dollar_amount_neg }}
     </div>
   {% endif %}
+  {% include "txactions_chart.html" %}
   {% include "txactions_page_block.html" %}
   <div class="block" id="forms">
     <div id="form-links">

@@ -21,6 +21,7 @@ urlpatterns = patterns('',
 
     (r'^api/change_memo$', 'money_views.api.change_memo'),
     (r'^api/change_account$', 'money_views.api.change_account'),
+    (r'^api/transactions$', 'money_views.api.get_transactions'),
 
     (r'^static/(?P<path>.*)$', 'django.contrib.staticfiles.views.serve'),
 

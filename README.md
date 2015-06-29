@@ -28,7 +28,7 @@ Features
 Wishlist
 --------
 
- - Graphs, budgeting, etc.
+ - Budgeting, etc.
 
  - Better management of rules and categorization
 
