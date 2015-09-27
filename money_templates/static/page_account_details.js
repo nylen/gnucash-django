@@ -128,6 +128,9 @@ $(function() {
   }
 
   $('table.transactions td.description').click(function() {
+    if (copyMode) {
+      return;
+    }
     showFilterForm(true);
 
     var thisValue = $(this).data('value');
@@ -189,6 +192,9 @@ $(function() {
   }
 
   $('table.transactions td.date').click(function() {
+    if (copyMode) {
+      return;
+    }
     showFilterForm(true);
     filterRangeFromValue(
       $(this).data('value'),
@@ -207,6 +213,9 @@ $(function() {
   });
 
   $('table.transactions td.amount').click(function() {
+    if (copyMode) {
+      return;
+    }
     showFilterForm(true);
     filterRangeFromValue(
       Math.abs($(this).data('value')),
@@ -232,6 +241,9 @@ $(function() {
   });
 
   $('.add-memo').show().click(function() {
+    if (copyMode) {
+      return;
+    }
     var $memoRow = $(this).closest('tr').next('tr');
     var $memoCell;
     while (($memoCell = $memoRow.find('.memo')).length) {
@@ -248,6 +260,9 @@ $(function() {
   });
 
   $('.edit-memo').click(function() {
+    if (copyMode) {
+      return;
+    }
     var $a = $(this);
     if ($a.hasClass('loading')) {
       return false;
