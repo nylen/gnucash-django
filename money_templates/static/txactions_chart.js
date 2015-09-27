@@ -8,6 +8,14 @@ spans.day  = 24*60*60*1000;
 spans.week = 7 * spans.day;
 
 $(function() {
+    $('#load-charts').on('click', function() {
+        $('#load-charts-container').hide();
+        $('#charts-container').show();
+        loadCharts();
+    });
+});
+
+function loadCharts() {
     var data = $.extend({
         accounts : currentAccountsKey
     }, queryParams);
@@ -53,7 +61,7 @@ $(function() {
         $(window).scrollTop(top);
         return false;
     });
-});
+}
 
 function getPeriodForDate(chart, d) {
     var date = moment(d);

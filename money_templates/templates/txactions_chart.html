@@ -1,23 +1,25 @@
-<div class="block chart-block">
-  <h3>Expenses</h3>
+<div class="block chart-block" id="load-charts-container">
+  <button id="load-charts">Load "Expenses" and "Income" charts</button>
+</div>
+<div class="block chart-block" id="charts-container">
+  <h3>Chart: Expenses</h3>
   <div id="expenses-chart">
     Loading expenses chart<span class="loading"><i>.</i><i>.</i><i>.</i></span>
   </div>
   <div id="expenses-reorder"></div>
-</div>
-<div class="block chart-block">
-  <h3>Income</h3>
+  <h3>Chart: Income</h3>
   <div id="income-chart">
     Loading income chart<span class="loading"><i>.</i><i>.</i><i>.</i></span>
   </div>
   <div id="income-reorder"></div>
-</div>
-<div class="block" id="chart-controls">
-  <div>
-    Period:
-    <a class="chart-period" data-period="weekly" href="#">weekly</a> |
-    <a class="chart-period" data-period="biweekly" href="#">biweekly</a> |
-    <a class="chart-period" data-period="monthly" href="#">monthly</a>
+  <h3>Chart controls</h3>
+  <div id="chart-controls">
+    <div>
+      Period:
+      <a class="chart-period" data-period="weekly" href="#">weekly</a> |
+      <a class="chart-period" data-period="biweekly" href="#">biweekly</a> |
+      <a class="chart-period" data-period="monthly" href="#">monthly</a>
+    </div>
   </div>
 </div>
 
