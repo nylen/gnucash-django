@@ -38,8 +38,11 @@ Requirements
  - A GnuCash file that uses a database backend (tested with MySQL; should work
    with Postgres or SQLite as well)
 
- - `pip` and `virtualenv` installed (in Debian/Ubuntu: `sudo apt-get install
-   python-pip`, then `sudo pip install virtualenv`)
+ - Pre-requisites (for Debian/Ubuntu):
+   `sudo apt-get update && sudo apt-get install -y git python-dev libmysqlclient-dev`
+
+ - `pip` and `virtualenv` installed (in Debian/Ubuntu: `sudo apt-get install python-pip`,
+   then `sudo pip install virtualenv`)
 
  - _(Optional)_ Python GnuCash API installed (currently this is only used in the
    code that imports QIF files)
