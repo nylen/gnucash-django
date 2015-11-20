@@ -138,13 +138,17 @@
                 <i class="icon-filter"></i>
               </a>
             {% endif %}
-            <a class="opposing-account-name" title="Go to account '{{ split.opposing_account.path }}'"
-              href="{% url money_views.views.account split.opposing_account.webapp_key %}">
+            {% if split.opposing_account %}
+              <a class="opposing-account-name" title="Go to account '{{ split.opposing_account.path }}'"
+                href="{% url money_views.views.account split.opposing_account.webapp_key %}">
 
-              {{ split.opposing_account.description_or_name }}</a>
+                {{ split.opposing_account.description_or_name }}</a>
 
-            <i class="change-opposing-account icon-caret-down" data-value="{{ split.opposing_account.guid }}"
-              title="Change opposing account"></i>
+              <i class="change-opposing-account icon-caret-down" data-value="{{ split.opposing_account.guid }}"
+                title="Change opposing account"></i>
+            {% else %}
+              No opposing account
+            {% endif %}
           </td>
           <td class="amount {% if split.is_credit %}credit{% else %}debit{% endif %}"
             data-value="{{ split.amount }}">

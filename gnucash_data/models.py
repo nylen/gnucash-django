@@ -322,7 +322,10 @@ class Split(models.Model):
 
   @property
   def opposing_split(self):
-    return self.opposing_split_set[0]
+    try:
+      return self.opposing_split_set[0]
+    except:
+      return None
 
   @property
   def opposing_account(self):
